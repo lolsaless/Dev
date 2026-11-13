@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>face_gen.py — matrix_face</title>
+<style>
+/* ---- css/tokens.css ---- */
+/* ============================================================
+   tokens.css — 색상·글꼴 토큰 (라이트 / 다크)
+   Notion 디자인 규칙(awesome-design-md/notion) 기반
+   다크 토큰은 원본에 정의가 없어 같은 계열로 새로 정함
+   ============================================================ */
+:root{
+  --canvas:#ffffff; --surface:#f6f5f4; --surface-soft:#fafaf9;
+  --hair:#e5e3df; --hair-soft:#ede9e4; --hair-strong:#c8c4be;
+  --ink:#1a1a1a; --charcoal:#37352f; --slate:#5d5b54; --steel:#787671; --stone:#a4a097; --muted:#bbb8b1;
+
+  --primary:#5645d4; --primary-pressed:#4534b3;     /* 설정 패널에서 바뀜 */
+  --sel:#e6e0f5;                                    /* 선택된 항목 배경 */
+
+  --syn-k:#5645d4; --syn-s:#148a2c; --syn-n:#dd5b00; --syn-c:#a4a097; --syn-f:#a02e6d; --syn-b:#1f7f7b;
+  --ok:#148a2c; --orange:#dd5b00; --teal:#2a9d99;
+  --dot1:#fde0ec; --dot2:#fef7d6; --dot3:#d9f3e1;
+
+  --pane-bg:#0a1530; --pane-dot:#1a2a52; --pane-ink:#a4a097;
+  --pop-shadow:rgba(15,15,15,.16);
+
+  --sans:Inter,-apple-system,system-ui,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",Helvetica,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono","SF Mono",Consolas,"D2Coding","Malgun Gothic",monospace;
+  color-scheme:light;
+}
+
+[data-theme="dark"]{
+  --canvas:#191919; --surface:#202020; --surface-soft:#1d1d1d;
+  --hair:#2f2f2e; --hair-soft:#292928; --hair-strong:#4a4946;
+  --ink:#ebebea; --charcoal:#d3d1cb; --slate:#a8a59d; --steel:#8f8c84; --stone:#6f6c66; --muted:#55534e;
+
+  --sel:#2b2652;
+
+  --syn-k:#9f90ff; --syn-s:#52d56d; --syn-n:#ff9b50; --syn-c:#6f6c66; --syn-f:#ff80c8; --syn-b:#55cbc6;
+  --ok:#52d56d; --orange:#ff9b50; --teal:#55cbc6;
+  --dot1:#6b3d55; --dot2:#6b6030; --dot3:#2f6b46;
+
+  --pane-bg:#070f24; --pane-dot:#14203f;
+  --pop-shadow:rgba(0,0,0,.55);
+  color-scheme:dark;
+}
+</style>
+<style>
+/* ---- css/layout.css ---- */
+/* ============================================================
+   layout.css — 전체 뼈대: 타이틀바, 액티비티바, 사이드바, 상태바
+   ============================================================ */
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body.idle{cursor:none}
+#app{display:grid;grid-template-rows:36px 1fr 24px;height:100%}
+#main{display:flex;min-height:0}
+
+/* 타이틀바 */
+#title{display:flex;align-items:center;gap:16px;padding:0 12px;background:var(--surface-soft);border-bottom:1px solid var(--hair);font-size:13px;color:var(--slate);user-select:none}
+.dots{display:flex;gap:8px}
+.dots i{width:12px;height:12px;border-radius:50%;border:1px solid var(--hair-strong)}
+.dots i:nth-child(1){background:var(--dot1)}.dots i:nth-child(2){background:var(--dot2)}.dots i:nth-child(3){background:var(--dot3)}
+.menu{display:flex;gap:4px}
+.menu span{padding:4px 8px;border-radius:6px}
+.ttl{flex:1;text-align:center;font-size:12px;color:var(--steel);margin-right:180px}
+
+/* 액티비티바 */
+#actbar{width:48px;flex:none;background:var(--surface);border-right:1px solid var(--hair);display:flex;flex-direction:column;align-items:center;padding-top:8px;gap:4px}
+#actbar div{width:48px;height:44px;display:flex;align-items:center;justify-content:center;border-left:2px solid transparent}
+#actbar div.on{border-left-color:var(--primary)}
+#actbar svg{width:22px;height:22px;fill:none;stroke:var(--steel);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#actbar div.on svg,#actbar div:hover svg{stroke:var(--ink)}
+#actbar .gear{margin-top:auto;margin-bottom:8px;cursor:pointer}
+
+/* 사이드바(탐색기) */
+#side{width:224px;flex:none;background:var(--surface-soft);border-right:1px solid var(--hair);overflow:hidden}
+.sec{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--steel);padding:14px 16px 8px}
+.tree div{display:flex;align-items:center;gap:8px;padding:3px 16px;font-size:13px;color:var(--charcoal);white-space:nowrap}
+.tree div.on{background:var(--sel)}
+.tree .fd{font-weight:500}
+.tree i{width:8px;height:8px;border-radius:2px;flex:none}
+.tree .ar{width:10px;color:var(--stone);font-size:10px;flex:none}
+
+/* 상태바 */
+#status{display:flex;justify-content:space-between;align-items:center;padding:0 12px;background:var(--primary);color:#fff;font-size:12px;user-select:none}
+#status div{display:flex;gap:16px;align-items:center}
+#status .rm{background:var(--primary-pressed);margin-left:-12px;padding:0 12px;height:24px;display:flex;align-items:center}
+#status .sb-btn{cursor:pointer;padding:0 8px;height:24px;display:flex;align-items:center;margin:0 -8px}
+#status .sb-btn:hover{background:rgba(255,255,255,.16)}
+
+/* 반응형 */
+@media(max-width:900px){#side,#actbar{display:none}}
+@media(max-width:640px){.ttl,.menu{display:none}}
+</style>
+<style>
+/* ---- css/editor.css ---- */
+/* ============================================================
+   editor.css — 탭, 경로, 코드 영역, 구문 강조 색
+   ============================================================ */
+#center{flex:1;min-width:0;display:flex;flex-direction:column}
+#erow{flex:1;min-height:0;display:flex}
+#editor{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--canvas)}
+
+#tabs{display:flex;height:36px;background:var(--surface-soft);border-bottom:1px solid var(--hair);flex:none}
+.tab{display:flex;align-items:center;gap:8px;padding:0 16px;font-size:13px;color:var(--steel);border-right:1px solid var(--hair-soft);border-bottom:2px solid transparent;white-space:nowrap}
+.tab.on{background:var(--canvas);color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+.tab i{width:8px;height:8px;border-radius:2px;background:var(--teal)}
+#crumb{height:24px;flex:none;display:flex;align-items:center;padding:0 16px;font-size:12px;color:var(--steel)}
+
+#code{flex:1;min-height:0;overflow:hidden;font-family:var(--mono);font-size:13px;line-height:20px;padding-top:2px}
+.row{display:flex;height:20px;white-space:pre}
+.row.act{background:var(--surface)}
+.ln{width:56px;flex:none;text-align:right;padding-right:20px;color:var(--muted);user-select:none}
+.row.act .ln{color:var(--charcoal)}
+.tx{color:var(--charcoal)}
+.tx i{font-style:normal}
+
+/* 구문 강조 (highlight.js 가 붙이는 클래스) */
+.k{color:var(--syn-k);font-weight:500}
+.s{color:var(--syn-s)}
+.n{color:var(--syn-n)}
+.c{color:var(--syn-c)!important;font-style:italic!important}
+.f{color:var(--syn-f)}
+.b{color:var(--syn-b)}
+
+.cur{display:inline-block;width:2px;height:16px;background:var(--primary);vertical-align:-3px;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+
+@media(max-width:640px){#erow{flex-direction:column-reverse}}
+</style>
+<style>
+/* ---- css/pane.css ---- */
+/* ============================================================
+   pane.css — 오른쪽 프리뷰(얼굴 canvas) + 하단 터미널 패널
+   ============================================================ */
+#pane{position:relative;width:42%;min-width:280px;max-width:760px;flex:none;background:var(--pane-bg);border-left:1px solid var(--hair);overflow:hidden;
+  background-image:radial-gradient(var(--pane-dot) 1px,transparent 1px);background-size:24px 24px}
+#face{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.ph{position:absolute;left:16px;top:12px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--pane-ink);z-index:2}
+.badge{position:absolute;right:16px;top:8px;z-index:2;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:500;color:#fff;background:var(--primary)}
+.cap{position:absolute;left:16px;bottom:10px;z-index:2;font-size:12px;color:var(--pane-ink);font-family:var(--mono)}
+
+#panel{height:168px;flex:none;border-top:1px solid var(--hair);background:var(--canvas);display:flex;flex-direction:column}
+.ptabs{display:flex;height:32px;gap:20px;padding:0 16px;flex:none;border-bottom:1px solid var(--hair-soft)}
+.ptabs span{display:flex;align-items:center;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--steel);border-bottom:2px solid transparent}
+.ptabs span.on{color:var(--ink);border-bottom-color:var(--ink)}
+#term{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:6px 16px 8px;font-family:var(--mono);font-size:12px;line-height:18px;color:var(--charcoal);white-space:pre}
+#term .ok{color:var(--ok)}
+#term .dim{color:var(--steel)}
+#term .pr{color:var(--syn-k);font-weight:600}
+#term .wr{color:var(--orange)}
+
+@media(max-width:640px){#pane{width:100%;max-width:none;height:50%;border-left:0}}
+</style>
+<style>
+/* ---- css/settings.css ---- */
+/* ============================================================
+   settings.css — 화면 설정 팝오버 (모드 / 프리셋 / 직접 색상)
+   Notion 규칙: 카드 12px, 버튼 8px, 필 탭은 full radius
+   ============================================================ */
+#settings{position:fixed;right:16px;bottom:36px;width:304px;z-index:50;padding:16px;color:var(--ink);font-size:13px;
+  background:var(--canvas);border:1px solid var(--hair);border-radius:12px;box-shadow:var(--pop-shadow) 0 16px 48px -8px}
+.st-h{font-size:14px;font-weight:600;margin-bottom:4px}
+.st-l{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--steel);margin:16px 0 8px}
+
+.pills{display:flex;gap:6px}
+.pills button{flex:1;border:1px solid var(--hair);background:transparent;color:var(--ink);border-radius:9999px;padding:6px 0;font:500 13px var(--sans);cursor:pointer}
+.pills button.on{background:var(--ink);color:var(--canvas);border-color:var(--ink)}
+
+.sw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sw button{display:flex;align-items:center;gap:8px;border:1px solid var(--hair);background:transparent;border-radius:8px;padding:7px 8px;color:var(--charcoal);font:13px var(--sans);cursor:pointer}
+.sw button.on{border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}
+.sw i{width:14px;height:14px;border-radius:50%;flex:none}
+
+.cl{display:flex;align-items:center;justify-content:space-between;margin:6px 0;color:var(--charcoal)}
+input[type=color]{width:44px;height:28px;border:1px solid var(--hair-strong);border-radius:6px;padding:2px;background:var(--canvas);cursor:pointer}
+
+.btn{width:100%;margin-top:16px;padding:8px 14px;border:1px solid var(--hair-strong);background:transparent;border-radius:8px;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--surface)}
+.hint{margin-top:10px;font-size:12px;color:var(--steel)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="title">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <div class="menu"><span>파일</span><span>편집</span><span>선택</span><span>보기</span><span>이동</span><span>실행</span><span>터미널</span><span>도움말</span></div>
+    <div class="ttl">face_gen.py — matrix_face</div>
+  </div>
+
+  <div id="main">
+    <div id="actbar">
+      <div class="on"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg></div>
+      <div><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/></svg></div>
+      <div><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 7v10M18 11c0 4-6 3-12 6"/></svg></div>
+      <div><svg viewBox="0 0 24 24"><path d="M7 4l12 8-12 8z"/></svg></div>
+      <div><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/></svg></div>
+      <div class="gear" id="gear" title="화면 설정 (D: 다크모드)"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></div>
+    </div>
+
+    <div id="side">
+      <div class="sec">탐색기</div>
+      <div class="tree">
+        <div class="fd"><span class="ar">▾</span>MATRIX_FACE</div>
+        <div style="padding-left:30px"><span class="ar">▸</span>.vscode</div>
+        <div style="padding-left:30px"><span class="ar">▾</span>src</div>
+        <div class="on" style="padding-left:46px"><i style="background:var(--teal)"></i>face_gen.py</div>
+        <div style="padding-left:46px"><i style="background:var(--teal)"></i>render.py</div>
+        <div style="padding-left:46px"><i style="background:var(--teal)"></i>matrix_rain.py</div>
+        <div style="padding-left:46px"><i style="background:var(--teal)"></i>landmarks.py</div>
+        <div style="padding-left:30px"><span class="ar">▸</span>samples</div>
+        <div style="padding-left:30px"><i style="background:var(--orange)"></i>config.json</div>
+        <div style="padding-left:30px"><i style="background:var(--stone)"></i>README.md</div>
+      </div>
+      <div class="sec">개요</div>
+      <div class="tree">
+        <div style="padding-left:30px"><i style="background:var(--primary)"></i>build_face</div>
+        <div style="padding-left:30px"><i style="background:var(--primary)"></i>to_glyph</div>
+        <div style="padding-left:30px"><i style="background:var(--primary)"></i>render</div>
+      </div>
+    </div>
+
+    <div id="center">
+      <div id="erow">
+        <div id="editor">
+          <div id="tabs">
+            <div class="tab on"><i></i>face_gen.py</div>
+            <div class="tab"><i></i>render.py</div>
+            <div class="tab"><i></i>matrix_rain.py</div>
+          </div>
+          <div id="crumb">matrix_face › src › face_gen.py › build_face</div>
+          <div id="code"></div>
+        </div>
+        <div id="pane">
+          <div class="ph">preview · face_render</div>
+          <div class="badge" id="badge">● ready</div>
+          <canvas id="face"></canvas>
+          <div class="cap" id="cap"></div>
+        </div>
+      </div>
+      <div id="panel">
+        <div class="ptabs"><span>문제</span><span>출력</span><span class="on">터미널</span></div>
+        <div id="term"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="status">
+    <div><span class="rm">&lt;&gt; matrix</span><span>⎇ main</span><span>⊗ 0 ⚠ 0</span></div>
+    <div><span id="pos">줄 1, 열 1</span><span>공백: 4</span><span>UTF-8</span><span>Python 3.12</span><span class="sb-btn" id="themeBtn" title="화면 설정 (D: 다크모드)">◐ 테마</span></div>
+  </div>
+</div>
+
+<!-- 화면 설정 패널 (js/60-theme.js 가 제어) -->
+<div id="settings" hidden>
+  <div class="st-h">화면 설정</div>
+  <div class="st-l">화면 모드</div>
+  <div class="pills" id="modePills">
+    <button data-mode="light">라이트</button>
+    <button data-mode="dark">다크</button>
+    <button data-mode="system">시스템</button>
+  </div>
+  <div class="st-l">색상 프리셋</div>
+  <div class="sw" id="presets"></div>
+  <div class="st-l">직접 선택</div>
+  <label class="cl">빗줄기 색<input type="color" id="cRain"></label>
+  <label class="cl">얼굴 색<input type="color" id="cFace"></label>
+  <label class="cl">포인트 색 (상태바)<input type="color" id="cAccent"></label>
+  <button class="btn" id="stReset">기본값으로 되돌리기</button>
+  <div class="hint">단축키: D = 다크/라이트 전환 · Esc = 닫기 · 더블클릭 = 전체화면</div>
+</div>
+
+<!-- 로드 순서가 중요함: util → 기능 모듈 → 시작점 -->
+<script>
+/* ---- js/00-util.js ---- */
+/* ============================================================
+   00-util.js — 공용 도구와 공유 상태 (가장 먼저 로드)
+   모든 모듈은 전역 객체 MF 아래에 붙는다 (file:// 에서도 동작)
+   ============================================================ */
+window.MF=window.MF||{};
+(function(M){
+  /* 시드 고정 난수 생성기 */
+  const rnd32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  /* 0~1 구간 부드러운 가감속 */
+  const ease=t=>t<=0?0:t>=1?1:0.5-0.5*Math.cos(Math.PI*t);
+  /* HTML 이스케이프 */
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  /* 색상 계산 */
+  const h2r=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];};
+  const r2h=a=>'#'+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+  const mix=(a,b,t)=>{const x=h2r(a),y=h2r(b);return r2h([0,1,2].map(i=>x[i]+(y[i]-x[i])*t));};
+  /* 기준색 하나로 n단계 밝기 팔레트 생성: 어두운 색 → 기준색(base번째) → 흰색에 가깝게 */
+  const ramp=(color,n,base,bg)=>{
+    const dark=mix(bg,color,0.14),out=[];
+    for(let i=0;i<n;i++) out.push(i<base?mix(dark,color,i/base):mix(color,'#ffffff',(i-base)/(n-1-base)*0.9));
+    return out;
+  };
+
+  M.util={rnd32,ease,esc,mix,ramp};
+
+  /* 한 사이클 단계별 길이(초): 생성 → 유지 → 녹음 → 빈 화면 */
+  M.DUR={build:13,hold:7,melt:3.5,gap:0.8};
+
+  /* 모듈 간 공유 상태 */
+  M.state={
+    seed:4800+Math.floor(Math.random()*200),  // 현재 얼굴 시드
+    cols:60,rows:36,                          // canvas 격자 크기 (face-canvas.js 가 갱신)
+    P:null,                                   // 현재 얼굴 파라미터
+    phase:'gap',pt:0,absT:0,blink:false,faceNo:0
+  };
+})(window.MF);
+</script>
+<script>
+/* ---- js/10-highlight.js ---- */
+/* ============================================================
+   10-highlight.js — 파이썬 구문 강조 (한 줄 → HTML)
+   색은 css/editor.css 의 .k .s .n .c .f .b 클래스가 결정
+   ============================================================ */
+(function(M){
+  const esc=M.util.esc;
+  const KW=new Set(['import','from','def','return','for','in','if','else','elif','while','class','with','as','not','and','or','yield','pass']);
+  const CONST=new Set(['True','False','None','self']);
+  const RE=/(#.*$)|("(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)(\s*\()?|([\s\S])/g;
+
+  M.highlight=function(line){
+    let out='',m;RE.lastIndex=0;
+    while((m=RE.exec(line))){
+      if(m[1]) out+='<i class="c">'+esc(m[1])+'</i>';           // 주석
+      else if(m[2]) out+='<i class="s">'+esc(m[2])+'</i>';      // 문자열
+      else if(m[3]) out+='<i class="n">'+m[3]+'</i>';           // 숫자
+      else if(m[4]){
+        const w=m[4],p=m[5]?esc(m[5]):'';
+        if(KW.has(w)) out+='<i class="k">'+w+'</i>'+p;          // 키워드
+        else if(CONST.has(w)) out+='<i class="b">'+w+'</i>'+p;  // True/None/self
+        else if(m[5]) out+='<i class="f">'+w+'</i>'+p;          // 함수 호출·정의
+        else out+=esc(w);
+      } else out+=esc(m[6]);
+    }
+    return out;
+  };
+})(window.MF);
+</script>
+<script>
+/* ---- js/11-script-text.js ---- */
+/* ============================================================
+   11-script-text.js — 에디터에 타이핑될 파이썬 코드 내용
+   보여줄 코드를 바꾸고 싶으면 이 파일의 배열만 수정하면 된다
+   ============================================================ */
+(function(M){
+  M.scriptLines=function(){
+    const S=M.state;
+    return [
+'import numpy as np',
+'from matrix_rain import Rain, glyphs',
+'from landmarks import Mesh',
+'',
+'SEED = '+S.seed,
+'GRID = ('+S.cols+', '+S.rows+')            # cols x rows',
+'RAMP = " .:-=+/{}10#%@"          # dark -> bright',
+'',
+'def build_face(seed: int) -> np.ndarray:',
+'    rng = np.random.default_rng(seed)',
+'    width   = rng.uniform(0.54, 0.68)',
+'    eye_gap = rng.uniform(0.21, 0.31)',
+'    smile   = rng.uniform(-0.015, 0.06)',
+'    hair    = rng.choice(["short", "bob", "long"])',
+'    mesh = Mesh(width, eye_gap, smile, hair)',
+'    return mesh.rasterize(GRID)',
+'',
+'def to_glyph(v: float) -> str:',
+'    idx = int(v * (len(RAMP) - 1))',
+'    return RAMP[idx]',
+'',
+'def render(face, rain):',
+'    for y, row in enumerate(face):',
+'        for x, v in enumerate(row):',
+'            if rain.passed(x, y) and v > 0.06:',
+'                yield x, y, to_glyph(v)',
+'',
+'def main():',
+'    face = build_face(SEED)',
+'    for frame in Rain(GRID, fps=20):',
+'        for x, y, ch in render(face, frame):',
+'            frame.put(x, y, ch)',
+'        frame.flush()',
+'',
+'if __name__ == "__main__":',
+'    main()'
+    ];
+  };
+})(window.MF);
+</script>
+<script>
+/* ---- js/20-editor.js ---- */
+/* ============================================================
+   20-editor.js — 코드 타이핑 효과 (줄 추가·스크롤·커서)
+   init(요소) → start() → 매 프레임 tick(dt, 초당글자수)
+   ============================================================ */
+(function(M){
+  const LH=20;                         // css/editor.css 의 line-height 와 같아야 함
+  let ed,L=[],li=0,ci=0,lnNo=1,wait=0,acc=0,cur=null,restart=false;
+
+  function init(el){ed=el;}
+
+  function addRow(){
+    if(cur) cur.el.classList.remove('act');
+    const el=document.createElement('div');el.className='row act';
+    el.innerHTML='<span class="ln">'+(lnNo++)+'</span><span class="tx"></span>';
+    ed.appendChild(el);cur={el:el,tx:el.lastChild};
+    const max=Math.max(6,Math.floor(ed.clientHeight/LH));
+    while(ed.children.length>max&&ed.firstChild!==el) ed.removeChild(ed.firstChild);   // 위쪽 줄은 밀려 사라짐
+  }
+
+  function start(){ed.textContent='';cur=null;L=M.scriptLines();li=0;ci=0;lnNo=1;addRow();}
+
+  function tick(dt,rate){
+    if(wait>0){wait-=dt;if(wait<=0&&restart){restart=false;start();}return;}
+    acc+=dt*rate;let n=acc|0;acc-=n;let changed=false;
+    while(n-->0){
+      const line=L[li];
+      if(ci<line.length){ci++;changed=true;}
+      else{
+        li++;ci=0;
+        if(li>=L.length){                                   // 끝: 잠시 멈춘 뒤 처음부터 다시
+          cur.tx.innerHTML=M.highlight(L[li-1])+'<b class="cur"></b>';
+          wait=2.4;restart=true;changed=false;li=L.length-1;ci=L[li].length;break;
+        }
+        cur.tx.innerHTML=M.highlight(line);addRow();
+        wait=0.04+Math.random()*0.12;changed=false;break;   // 줄바꿈 때 살짝 쉼
+      }
+    }
+    if(changed) cur.tx.innerHTML=M.highlight(L[li].slice(0,ci))+'<b class="cur"></b>';
+  }
+
+  M.editor={init,start,tick,pos:()=>[li+1,ci+1]};
+})(window.MF);
+</script>
+<script>
+/* ---- js/30-terminal.js ---- */
+/* ============================================================
+   30-terminal.js — 하단 터미널: 로그 줄 + 진행률 막대
+   ============================================================ */
+(function(M){
+  let term,barEl=null;
+
+  function init(el){term=el;}
+
+  function log(html){
+    const d=document.createElement('div');d.innerHTML=html;
+    if(barEl) term.insertBefore(d,barEl);else term.appendChild(d);   // 진행률 막대는 항상 맨 아래
+    while(term.children.length>9) term.removeChild(term.firstChild);
+  }
+  function mkBar(){if(barEl)return;barEl=document.createElement('div');term.appendChild(barEl);}
+  function setBar(pct){
+    if(!barEl)return;
+    const n=Math.round(pct/5);
+    barEl.innerHTML='<span class="dim">'+'█'.repeat(n)+'░'.repeat(20-n)+'</span> '+Math.round(pct)+'%';
+  }
+
+  M.terminal={init,log,mkBar,setBar};
+})(window.MF);
+</script>
+<script>
+/* ---- js/40-face-shape.js ---- */
+/* ============================================================
+   40-face-shape.js — 얼굴 모양 수학 모델
+   faceVal(u,v,P,blink) : 좌표 (u,v) 의 밝기 0~1 (머리·머리카락·눈·코·입)
+   makeParams(seed)     : 시드로 얼굴 특징(폭·눈 간격·미소·머리 모양) 결정
+   좌표계: 얼굴 중심 (0,0), 위쪽이 음수 v, 대략 -1 ~ +1
+   ============================================================ */
+(function(M){
+  function makeParams(sd){
+    const r=M.util.rnd32(sd),u=(a,b)=>a+(b-a)*r(),hs=['short','bob','long'];
+    return {seed:sd,fw:u(.54,.68),eg:u(.21,.31),ey:u(-.16,-.08),sm:u(-.015,.06),jaw:u(.25,.5),ny:u(.2,.3),bang:u(3,8),hair:hs[Math.floor(r()*3)],hs:u(.9,1.1)};
+  }
+
+  function faceVal(u,v,P,blink){
+    let val=0;
+    /* 목 + 어깨 */
+    if(v>0.6&&Math.abs(u)<0.2&&v<1.05) val=0.26;
+    const sh=(u/0.95)*(u/0.95)+((v-1.3)/0.5)*((v-1.3)/0.5);
+    if(sh<1&&v>0.9) val=Math.max(val,0.2+0.14*(1-sh));
+
+    /* 머리(달걀형) + 윤곽선 */
+    const hv=v/0.82;let inHead=false,w=0;
+    if(hv>-1&&hv<1){
+      w=P.fw*Math.sqrt(1-hv*hv);
+      if(hv>0.15) w*=1-P.jaw*(hv-0.15)/0.85;                 // 턱 좁히기
+      if(Math.abs(u)<w){
+        inHead=true;const e=1-Math.abs(u)/w;
+        val=0.2+0.1*e+0.05*Math.max(0,1-Math.hypot(u,v-0.1)*2);
+        if(e<0.08) val=0.8;
+      }
+    }
+
+    /* 머리카락: 윗머리 + 앞머리, 길이에 따라 옆머리 */
+    const au=Math.abs(u);
+    const hx=u/(P.fw+0.1),hy=(v+0.06)/(0.9*P.hs);
+    const strand=Math.max(0.36,0.5+0.22*Math.sin(u*34+v*5));
+    if(hx*hx+hy*hy<1){
+      const line=-0.4+0.1*Math.abs(Math.sin(u*P.bang));
+      if(!inHead||v<line) val=strand;
+    }
+    if(P.hair!=='short'){
+      const lim=P.hair==='bob'?0.5:0.95;
+      const vc=(lim-0.4)/2,b=(lim+0.4)/2+0.05,a=P.fw+0.17;
+      const hw=(hv>-1&&hv<1)?w:0.21;
+      if(v>-0.4&&v<lim&&au>hw*0.95&&(au/a)*(au/a)+((v-vc)/b)*((v-vc)/b)<1) val=strand;
+    }
+
+    /* 눈(깜빡임 지원) + 눈썹 */
+    for(let s=-1;s<=1;s+=2){
+      const ex=s*P.eg,ey=P.ey,dx=(u-ex)/0.115,dy=(v-ey)/(blink?0.018:0.05),d=dx*dx+dy*dy;
+      if(d<1){ if(blink) val=0.95; else{ val=d>0.5?0.95:0.12; if((u-ex)*(u-ex)+(v-ey)*(v-ey)<0.0012) val=1; } }
+      const t=(u-ex)/0.15;
+      if(Math.abs(t)<1&&Math.abs(v-(ey-0.11-0.035*(1-t*t)))<0.014) val=0.85;
+    }
+
+    /* 코 */
+    if(au<0.02&&v>P.ey+0.03&&v<P.ny) val=0.55;
+    const nx=(au-0.07)/0.035,nyy=(v-P.ny-0.01)/0.022;
+    if(nx*nx+nyy*nyy<1) val=0.9;
+
+    /* 입 (smile 값이 클수록 입꼬리 올라감) */
+    if(au<0.2){
+      const t=au/0.2,yc=0.45-P.sm*t*t;
+      if(Math.abs(v-yc)<0.014) val=0.9;
+      else if(au<0.13&&Math.abs(v-(yc+0.035+P.sm*0.2))<0.011) val=0.6;
+    }
+    return val>1?1:val;
+  }
+
+  M.shape={makeParams,faceVal};
+})(window.MF);
+</script>
+<script>
+/* ---- js/41-face-canvas.js ---- */
+/* ============================================================
+   41-face-canvas.js — canvas 렌더링 (문자 비 + 얼굴 글자 + 색상 팔레트)
+   init(pane, canvas)  : 크기 맞춤 + 창 크기 변경 감지
+   setColors(rain,face): 기준색으로 팔레트 재생성 (설정 패널에서 호출)
+   buildFace()         : 현재 시드로 얼굴 밝기 지도 계산
+   draw()              : 한 프레임 그리기 (시퀀스 단계는 MF.state 참조)
+   저사양 비결: 글자를 한 번만 그려 둔 atlas 에서 drawImage 로 복사만 한다
+   ============================================================ */
+(function(M){
+  const U=M.util,S=M.state,DUR=M.DUR;
+  const CW=8,CH=14;                                          // 글자 칸 크기(css px)
+  const RAIN_CH='01{}()[];=+-*/<>#$%&|~^?!:.'.split('');       // 비에 쓰는 문자
+  const FACE_RAMP=[' ','.',':','-','=','+','/','{','}','1','0','#','%','@'];   // 어두움 → 밝음
+  const GL=[...new Set([...RAIN_CH,...FACE_RAMP.slice(1)])];
+  const gIdx={};GL.forEach((g,i)=>gIdx[g]=i);
+  const RI=RAIN_CH.map(g=>gIdx[g]);
+  const FI=FACE_RAMP.map(g=>g===' '?-1:gIdx[g]);
+  const BG='#0a1530';                                        // 팔레트 가장 어두운 쪽이 섞일 배경
+
+  let RAINC=[],FACEC=[];
+  let pane,cv,ctx,dpr=1,cwd=8,chd=14,atlas=null,jit,sp,off,tl,head,A,B,fr=0;
+
+  /* ---------- 색상 ---------- */
+  function setColors(rain,face){
+    RAINC=U.ramp(rain,6,3,BG);          // 비: 6단계, 3번째가 기준색
+    FACEC=U.ramp(face,8,4,BG);          // 얼굴: 8단계, 4번째가 기준색
+    if(atlas) buildAtlas();
+  }
+  setColors('#2a9d99','#a58cf6');
+
+  function buildAtlas(){
+    atlas=document.createElement('canvas');atlas.width=GL.length*cwd;atlas.height=(RAINC.length+FACEC.length)*chd;
+    const a=atlas.getContext('2d');a.textAlign='center';a.textBaseline='middle';
+    a.font=Math.round(11.5*dpr)+'px Consolas,"Cascadia Mono","SF Mono",Menlo,"DejaVu Sans Mono",monospace';
+    RAINC.concat(FACEC).forEach((c,row)=>{a.fillStyle=c;GL.forEach((g,i)=>a.fillText(g,i*cwd+cwd/2,row*chd+chd/2+1));});
+  }
+
+  /* ---------- 얼굴 밝기 지도 ---------- */
+  function buildFace(){
+    const sd=S.seed,cols=S.cols,rows=S.rows;
+    S.P=M.shape.makeParams(sd);
+    const Wc=cols*cwd/dpr,Hc=rows*chd/dpr,sc=Math.min(Wc/2/0.9,Hc/2/1.0),nz=U.rnd32(sd*7+1);
+    for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+      const u=((x+.5)*cwd/dpr-Wc/2)/sc,v=((y+.5)*chd/dpr-Hc/2)/sc,i=y*cols+x,n=(nz()-.5)*0.05;
+      const a=M.shape.faceVal(u,v,S.P,false),b=M.shape.faceVal(u,v,S.P,true);   // b = 눈 감은 버전
+      A[i]=a>0.05?Math.max(0.07,a+n):0;B[i]=b>0.05?Math.max(0.07,b+n):0;
+    }
+  }
+
+  /* ---------- 크기 맞춤 ---------- */
+  function setup(){
+    const r=pane.getBoundingClientRect();
+    dpr=Math.min(window.devicePixelRatio||1,1.5);              // 해상도 상한 1.5배(리소스 절약)
+    cwd=Math.round(CW*dpr);chd=Math.round(CH*dpr);
+    const cols=Math.max(24,Math.floor(r.width*dpr/cwd)),rows=Math.max(14,Math.floor(r.height*dpr/chd));
+    S.cols=cols;S.rows=rows;
+    cv.width=cols*cwd;cv.height=rows*chd;cv.style.width=cv.width/dpr+'px';cv.style.height=cv.height/dpr+'px';
+    buildAtlas();
+    const n=cols*rows;jit=new Float32Array(n);A=new Float32Array(n);B=new Float32Array(n);
+    for(let i=0;i<n;i++)jit[i]=Math.random();
+    sp=new Float32Array(cols);off=new Float32Array(cols);tl=new Float32Array(cols);head=new Float32Array(cols);
+    for(let x=0;x<cols;x++){sp[x]=7+Math.random()*13;off[x]=Math.random()*rows*3;tl[x]=8+Math.random()*14;}   // 열마다 속도·꼬리 길이
+    buildFace();
+  }
+
+  /* ---------- 한 프레임 ---------- */
+  function draw(){
+    const cols=S.cols,rows=S.rows,phase=S.phase,pt=S.pt;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    fr++;
+    for(let x=0;x<cols;x++) head[x]=(S.absT*sp[x]+off[x])%(rows+tl[x]);   // 각 열의 비 머리 위치
+    const front=phase==='build'?U.ease(pt/DUR.build)*(rows+8):0;          // 생성 전선
+    const melt=phase==='melt'?U.ease(pt/DUR.melt)*(rows+8):0;             // 녹는 전선
+    const scan=phase==='hold'?((pt/DUR.hold)*(rows+10))-3:-99;            // 유지 중 스캔라인
+    const map=S.blink?B:A;
+    const fa=fr>>3,ra=fr>>2;
+    for(let y=0;y<rows;y++){
+      for(let x=0;x<cols;x++){
+        const i=y*cols+x,j=jit[i]*6,val=map[i];
+        let res=false,flash=false;
+        if(phase==='build'){const d=front-j-y;res=d>=0;flash=d<2.5;}
+        else if(phase==='hold') res=true;
+        else if(phase==='melt') res=y>melt+j-6;
+        if(res&&val>0){                                       // 얼굴 글자
+          let r=(val*14)|0;if(r>13)r=13;if(r<1)r=1;
+          if((fa+x*3+y*7)%23===0&&r<13) r++;                  // 반짝임
+          let lv=(val*8)|0;if(lv>7)lv=7;
+          if(flash) lv=7;
+          else if(phase==='hold'){const dd=y-scan;if(dd>-2&&dd<2&&lv<7)lv=Math.min(7,lv+2);}
+          ctx.drawImage(atlas,FI[r]*cwd,(RAINC.length+lv)*chd,cwd,chd,x*cwd,y*chd,cwd,chd);
+        }else{                                                 // 문자 비
+          const d=head[x]-y;
+          if(d>=0&&d<tl[x]){
+            const k=1-d/tl[x];
+            if(k>0.04){
+              let lv=d<1?5:Math.min(4,(k*5)|0);
+              if(res&&lv>2) lv=2;                              // 얼굴 위쪽 영역에서는 비를 어둡게
+              const g=RI[(x*7+y*13+ra*29+(d<1?fr*5:0))%RI.length];
+              ctx.drawImage(atlas,g*cwd,lv*chd,cwd,chd,x*cwd,y*chd,cwd,chd);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function init(p,c){
+    pane=p;cv=c;ctx=cv.getContext('2d');setup();
+    let t=0;new ResizeObserver(()=>{clearTimeout(t);t=setTimeout(setup,150);}).observe(pane);
+  }
+
+  M.canvas={init,setup,setColors,buildFace,draw};
+})(window.MF);
+</script>
+<script>
+/* ---- js/50-sequence.js ---- */
+/* ============================================================
+   50-sequence.js — 한 사이클의 진행 관리
+   build(생성) → hold(유지) → melt(녹음) → gap(빈 화면) → 새 시드로 반복
+   단계 전환, 터미널 로그 시점, 배지·캡션·상태바 갱신 담당
+   ============================================================ */
+(function(M){
+  const S=M.state,DUR=M.DUR,T=M.terminal,U=M.util;
+  let EV=[],evi=0,uiT=0;
+  const badge=()=>document.getElementById('badge'),cap=()=>document.getElementById('cap'),pos=()=>document.getElementById('pos');
+
+  /* 진행률(0~1)에 도달하면 터미널에 찍을 로그 */
+  function events(){
+    const dim=t=>'<span class="dim">'+t+'</span>',ok='<span class="ok">ok</span>';
+    return [
+      [0.02,dim('[  0%]')+' seeding RNG ........................ '+ok],
+      [0.12,dim('[ 12%]')+' sampling landmarks (68 pts) ........ '+ok],
+      [0.28,dim('[ 30%]')+' building mesh '+S.cols+'x'+S.rows+' ............... '+ok],
+      [0.44,dim('[ 48%]')+' rasterizing glyph ramp ............. '+ok],
+      [0.60,dim('[ 66%]')+' hair strands: '+S.P.hair+' ................. '+ok],
+      [0.78,dim('[ 84%]')+' resolving eyes / mouth ............ '+ok],
+      [0.95,dim('[ 98%]')+' flushing frame buffer ............. '+ok]
+    ];
+  }
+
+  function start(p){
+    S.phase=p;S.pt=0;
+    if(p==='build'){
+      S.seed+=1+Math.floor(Math.random()*40);S.faceNo++;
+      M.canvas.buildFace();evi=0;EV=events();
+      T.mkBar();
+      T.log('<span class="pr">$</span> python face_gen.py --seed '+S.seed);
+    }else if(p==='hold'){
+      T.log('<span class="ok">✔</span> face #'+S.faceNo+' rendered · '+(S.cols*S.rows)+' cells');
+    }else if(p==='melt'){
+      T.log('<span class="wr">↻</span> dissolving buffer…');
+    }
+  }
+
+  function step(dt){
+    S.absT+=dt;S.pt+=dt;
+    if(S.pt>=DUR[S.phase]) start(S.phase==='build'?'hold':S.phase==='hold'?'melt':S.phase==='melt'?'gap':'build');
+    if(S.phase==='build'){
+      const e=U.ease(S.pt/DUR.build);
+      while(evi<EV.length&&e>=EV[evi][0]){T.log(EV[evi][1]);evi++;}
+    }
+    S.blink=S.phase==='hold'&&((S.pt%3.2)>3.0);              // 유지 중 3.2초마다 눈 깜빡
+  }
+
+  /* 화면 글자 갱신은 0.15초마다만 (리소스 절약) */
+  function ui(dt){
+    uiT+=dt;if(uiT<0.15)return;uiT=0;
+    let pct=0,txt='● ready';
+    if(S.phase==='build'){pct=U.ease(S.pt/DUR.build)*100;txt='● generating '+Math.round(pct)+'%';}
+    else if(S.phase==='hold'){pct=100;txt='● rendered';}
+    else if(S.phase==='melt'){pct=100-U.ease(S.pt/DUR.melt)*100;txt='● dissolving';}
+    badge().textContent=txt;
+    T.setBar(pct);
+    cap().textContent='seed '+S.seed+' · '+S.cols+'×'+S.rows+' cells · hair '+(S.P?S.P.hair:'-');
+    const p=M.editor.pos();pos().textContent='줄 '+p[0]+', 열 '+p[1];
+  }
+
+  M.seq={start,step,ui};
+})(window.MF);
+</script>
+<script>
+/* ---- js/60-theme.js ---- */
+/* ============================================================
+   60-theme.js — 다크모드 + 색상 설정 (설정 패널)
+   - 화면 모드: 라이트 / 다크 / 시스템
+   - 색상 프리셋, 빗줄기·얼굴·포인트(상태바) 색 직접 선택
+   - 선택값은 브라우저 localStorage 에 저장되어 다음에도 유지
+   - 단축키: D = 다크/라이트 전환, Esc = 설정 닫기
+   프리셋을 추가하려면 PRESETS 배열에 한 줄 추가
+   ============================================================ */
+(function(M){
+  const KEY='matrixface.settings.v1';
+  const PRESETS=[
+    {id:'violet', name:'보라',   rain:'#2a9d99',face:'#a58cf6',accent:'#5645d4'},
+    {id:'matrix', name:'초록',  rain:'#1fd14a',face:'#8dffa6',accent:'#148a2c'},
+    {id:'ocean',  name:'바다',   rain:'#2b8cd6',face:'#8fdcff',accent:'#2f6fd6'},
+    {id:'orange', name:'주황',   rain:'#dd5b00',face:'#ffb780',accent:'#c24f00'},
+    {id:'pink',   name:'핑크',   rain:'#d6459f',face:'#ff9fd9',accent:'#a02e6d'},
+    {id:'mono',   name:'흑백',   rain:'#8a8f98',face:'#ffffff',accent:'#37352f'}
+  ];
+  const DEF={mode:'system',rain:PRESETS[0].rain,face:PRESETS[0].face,accent:PRESETS[0].accent};
+  const $=id=>document.getElementById(id);
+  const mq=matchMedia('(prefers-color-scheme: dark)');
+  let S=load();
+
+  function load(){try{return Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY))||{});}catch(e){return Object.assign({},DEF);}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+  const resolved=()=>S.mode==='system'?(mq.matches?'dark':'light'):S.mode;
+
+  /* 설정값을 화면에 반영 */
+  function apply(){
+    const root=document.documentElement;
+    root.dataset.theme=resolved();
+    root.style.setProperty('--primary',S.accent);
+    root.style.setProperty('--primary-pressed',M.util.mix(S.accent,'#000000',0.2));
+    M.canvas.setColors(S.rain,S.face);
+    sync();
+  }
+
+  /* 패널 안의 버튼·입력 상태 맞추기 */
+  function sync(){
+    document.querySelectorAll('#modePills button').forEach(b=>b.classList.toggle('on',b.dataset.mode===S.mode));
+    document.querySelectorAll('#presets button').forEach(b=>{
+      const p=PRESETS.find(x=>x.id===b.dataset.id);
+      b.classList.toggle('on',p.rain===S.rain&&p.face===S.face&&p.accent===S.accent);
+    });
+    $('cRain').value=S.rain;$('cFace').value=S.face;$('cAccent').value=S.accent;
+  }
+
+  function buildPresets(){
+    $('presets').innerHTML=PRESETS.map(p=>
+      '<button data-id="'+p.id+'"><i style="background:linear-gradient(135deg,'+p.rain+' 50%,'+p.face+' 50%)"></i>'+p.name+'</button>').join('');
+  }
+
+  function toggle(open){
+    const el=$('settings');
+    el.hidden=open===undefined?!el.hidden:!open;
+  }
+
+  function init(){
+    buildPresets();
+    $('modePills').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.mode=b.dataset.mode;save();apply();});
+    $('presets').addEventListener('click',e=>{
+      const b=e.target.closest('button');if(!b)return;
+      const p=PRESETS.find(x=>x.id===b.dataset.id);S.rain=p.rain;S.face=p.face;S.accent=p.accent;save();apply();
+    });
+    $('cRain').addEventListener('input',e=>{S.rain=e.target.value;save();apply();});
+    $('cFace').addEventListener('input',e=>{S.face=e.target.value;save();apply();});
+    $('cAccent').addEventListener('input',e=>{S.accent=e.target.value;save();apply();});
+    $('stReset').addEventListener('click',()=>{S=Object.assign({},DEF);save();apply();});
+
+    $('gear').addEventListener('click',e=>{e.stopPropagation();toggle();});
+    $('themeBtn').addEventListener('click',e=>{e.stopPropagation();toggle();});
+    document.addEventListener('click',e=>{if(!e.target.closest('#settings'))toggle(false);});     // 바깥 클릭 = 닫기
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape') toggle(false);
+      else if((e.key==='d'||e.key==='D')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.target.tagName!=='INPUT'){
+        S.mode=resolved()==='dark'?'light':'dark';save();apply();
+      }
+    });
+    (mq.addEventListener?mq.addEventListener('change',()=>{if(S.mode==='system')apply();}):mq.addListener(()=>{if(S.mode==='system')apply();}));
+    apply();
+  }
+
+  M.theme={init,apply,PRESETS};
+})(window.MF);
+</script>
+<script>
+/* ---- js/90-main.js ---- */
+/* ============================================================
+   90-main.js — 시작점: 모듈 초기화 + 메인 루프 + 편의 기능
+   ============================================================ */
+(function(M){
+  const S=M.state,$=id=>document.getElementById(id);
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MIN_DT=reduce?100:45;                        // 프레임 간격(ms): 약 20fps, 동작 줄이기 설정 시 10fps
+
+  let last=0;
+  function frame(now){
+    requestAnimationFrame(frame);                    // 탭이 숨겨지면 브라우저가 자동으로 멈춤
+    if(now-last<MIN_DT) return;
+    const dt=Math.min(0.2,(now-last)/1000);last=now;
+    M.seq.step(dt);
+    M.editor.tick(dt,S.phase==='build'?95:45);       // 생성 중에는 타이핑이 더 빠름
+    M.canvas.draw();
+    M.seq.ui(dt);
+  }
+
+  function init(){
+    M.terminal.init($('term'));
+    M.canvas.init($('pane'),$('face'));              // 격자 크기(cols·rows)가 여기서 정해짐
+    M.theme.init();                                  // 저장된 모드·색상 적용
+    M.editor.init($('code'));M.editor.start();
+    M.terminal.log('<span class="dim">Python 3.12 · matrix_face 환경 활성화됨</span>');
+    M.terminal.mkBar();M.terminal.setBar(0);
+    M.seq.start('build');
+
+    document.addEventListener('visibilitychange',()=>{last=performance.now();});
+    requestAnimationFrame(frame);
+
+    /* 더블클릭 = 전체화면 (설정 패널 위에서는 제외) */
+    document.addEventListener('dblclick',e=>{
+      if(e.target.closest('#settings'))return;
+      if(document.fullscreenElement) document.exitFullscreen();
+      else if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    });
+    /* 마우스를 3초 안 움직이면 커서 숨김 */
+    let idleT=0;
+    addEventListener('mousemove',()=>{document.body.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(()=>document.body.classList.add('idle'),3000);});
+  }
+
+  init();
+})(window.MF);
+</script>
+</body>
+</html>

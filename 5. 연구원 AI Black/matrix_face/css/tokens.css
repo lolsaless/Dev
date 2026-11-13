@@ -1,0 +1,40 @@
+/* ============================================================
+   tokens.css — 색상·글꼴 토큰 (라이트 / 다크)
+   Notion 디자인 규칙(awesome-design-md/notion) 기반
+   다크 토큰은 원본에 정의가 없어 같은 계열로 새로 정함
+   ============================================================ */
+:root{
+  --canvas:#ffffff; --surface:#f6f5f4; --surface-soft:#fafaf9;
+  --hair:#e5e3df; --hair-soft:#ede9e4; --hair-strong:#c8c4be;
+  --ink:#1a1a1a; --charcoal:#37352f; --slate:#5d5b54; --steel:#787671; --stone:#a4a097; --muted:#bbb8b1;
+
+  --primary:#5645d4; --primary-pressed:#4534b3;     /* 설정 패널에서 바뀜 */
+  --sel:#e6e0f5;                                    /* 선택된 항목 배경 */
+
+  --syn-k:#5645d4; --syn-s:#148a2c; --syn-n:#dd5b00; --syn-c:#a4a097; --syn-f:#a02e6d; --syn-b:#1f7f7b;
+  --ok:#148a2c; --orange:#dd5b00; --teal:#2a9d99;
+  --dot1:#fde0ec; --dot2:#fef7d6; --dot3:#d9f3e1;
+
+  --pane-bg:#0a1530; --pane-dot:#1a2a52; --pane-ink:#a4a097;
+  --pop-shadow:rgba(15,15,15,.16);
+
+  --sans:Inter,-apple-system,system-ui,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",Helvetica,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono","SF Mono",Consolas,"D2Coding","Malgun Gothic",monospace;
+  color-scheme:light;
+}
+
+[data-theme="dark"]{
+  --canvas:#191919; --surface:#202020; --surface-soft:#1d1d1d;
+  --hair:#2f2f2e; --hair-soft:#292928; --hair-strong:#4a4946;
+  --ink:#ebebea; --charcoal:#d3d1cb; --slate:#a8a59d; --steel:#8f8c84; --stone:#6f6c66; --muted:#55534e;
+
+  --sel:#2b2652;
+
+  --syn-k:#9f90ff; --syn-s:#52d56d; --syn-n:#ff9b50; --syn-c:#6f6c66; --syn-f:#ff80c8; --syn-b:#55cbc6;
+  --ok:#52d56d; --orange:#ff9b50; --teal:#55cbc6;
+  --dot1:#6b3d55; --dot2:#6b6030; --dot3:#2f6b46;
+
+  --pane-bg:#070f24; --pane-dot:#14203f;
+  --pop-shadow:rgba(0,0,0,.55);
+  color-scheme:dark;
+}

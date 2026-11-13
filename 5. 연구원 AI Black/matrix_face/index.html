@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>face_gen.py — matrix_face</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/editor.css">
+<link rel="stylesheet" href="css/pane.css">
+<link rel="stylesheet" href="css/settings.css">
+</head>
+<body>
+<div id="app">
+  <div id="title">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <div class="menu"><span>파일</span><span>편집</span><span>선택</span><span>보기</span><span>이동</span><span>실행</span><span>터미널</span><span>도움말</span></div>
+    <div class="ttl">face_gen.py — matrix_face</div>
+  </div>
+
+  <div id="main">
+    <div id="actbar">
+      <div class="on"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg></div>
+      <div><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/></svg></div>
+      <div><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 7v10M18 11c0 4-6 3-12 6"/></svg></div>
+      <div><svg viewBox="0 0 24 24"><path d="M7 4l12 8-12 8z"/></svg></div>
+      <div><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/></svg></div>
+      <div class="gear" id="gear" title="화면 설정 (D: 다크모드)"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></div>
+    </div>
+
+    <div id="side">
+      <div class="sec">탐색기</div>
+      <div class="tree">
+        <div class="fd"><span class="ar">▾</span>MATRIX_FACE</div>
+        <div style="padding-left:30px"><span class="ar">▸</span>.vscode</div>
+        <div style="padding-left:30px"><span class="ar">▾</span>src</div>
+        <div class="on" style="padding-left:46px"><i style="background:var(--teal)"></i>face_gen.py</div>
+        <div style="padding-left:46px"><i style="background:var(--teal)"></i>render.py</div>
+        <div style="padding-left:46px"><i style="background:var(--teal)"></i>matrix_rain.py</div>
+        <div style="padding-left:46px"><i style="background:var(--teal)"></i>landmarks.py</div>
+        <div style="padding-left:30px"><span class="ar">▸</span>samples</div>
+        <div style="padding-left:30px"><i style="background:var(--orange)"></i>config.json</div>
+        <div style="padding-left:30px"><i style="background:var(--stone)"></i>README.md</div>
+      </div>
+      <div class="sec">개요</div>
+      <div class="tree">
+        <div style="padding-left:30px"><i style="background:var(--primary)"></i>build_face</div>
+        <div style="padding-left:30px"><i style="background:var(--primary)"></i>to_glyph</div>
+        <div style="padding-left:30px"><i style="background:var(--primary)"></i>render</div>
+      </div>
+    </div>
+
+    <div id="center">
+      <div id="erow">
+        <div id="editor">
+          <div id="tabs">
+            <div class="tab on"><i></i>face_gen.py</div>
+            <div class="tab"><i></i>render.py</div>
+            <div class="tab"><i></i>matrix_rain.py</div>
+          </div>
+          <div id="crumb">matrix_face › src › face_gen.py › build_face</div>
+          <div id="code"></div>
+        </div>
+        <div id="pane">
+          <div class="ph">preview · face_render</div>
+          <div class="badge" id="badge">● ready</div>
+          <canvas id="face"></canvas>
+          <div class="cap" id="cap"></div>
+        </div>
+      </div>
+      <div id="panel">
+        <div class="ptabs"><span>문제</span><span>출력</span><span class="on">터미널</span></div>
+        <div id="term"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="status">
+    <div><span class="rm">&lt;&gt; matrix</span><span>⎇ main</span><span>⊗ 0 ⚠ 0</span></div>
+    <div><span id="pos">줄 1, 열 1</span><span>공백: 4</span><span>UTF-8</span><span>Python 3.12</span><span class="sb-btn" id="themeBtn" title="화면 설정 (D: 다크모드)">◐ 테마</span></div>
+  </div>
+</div>
+
+<!-- 화면 설정 패널 (js/60-theme.js 가 제어) -->
+<div id="settings" hidden>
+  <div class="st-h">화면 설정</div>
+  <div class="st-l">화면 모드</div>
+  <div class="pills" id="modePills">
+    <button data-mode="light">라이트</button>
+    <button data-mode="dark">다크</button>
+    <button data-mode="system">시스템</button>
+  </div>
+  <div class="st-l">색상 프리셋</div>
+  <div class="sw" id="presets"></div>
+  <div class="st-l">직접 선택</div>
+  <label class="cl">빗줄기 색<input type="color" id="cRain"></label>
+  <label class="cl">얼굴 색<input type="color" id="cFace"></label>
+  <label class="cl">포인트 색 (상태바)<input type="color" id="cAccent"></label>
+  <button class="btn" id="stReset">기본값으로 되돌리기</button>
+  <div class="hint">단축키: D = 다크/라이트 전환 · Esc = 닫기 · 더블클릭 = 전체화면</div>
+</div>
+
+<!-- 로드 순서가 중요함: util → 기능 모듈 → 시작점 -->
+<script src="js/00-util.js"></script>
+<script src="js/10-highlight.js"></script>
+<script src="js/11-script-text.js"></script>
+<script src="js/20-editor.js"></script>
+<script src="js/30-terminal.js"></script>
+<script src="js/40-face-shape.js"></script>
+<script src="js/41-face-canvas.js"></script>
+<script src="js/50-sequence.js"></script>
+<script src="js/60-theme.js"></script>
+<script src="js/90-main.js"></script>
+</body>
+</html>

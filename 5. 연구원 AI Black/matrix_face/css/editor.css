@@ -1,0 +1,33 @@
+/* ============================================================
+   editor.css — 탭, 경로, 코드 영역, 구문 강조 색
+   ============================================================ */
+#center{flex:1;min-width:0;display:flex;flex-direction:column}
+#erow{flex:1;min-height:0;display:flex}
+#editor{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--canvas)}
+
+#tabs{display:flex;height:36px;background:var(--surface-soft);border-bottom:1px solid var(--hair);flex:none}
+.tab{display:flex;align-items:center;gap:8px;padding:0 16px;font-size:13px;color:var(--steel);border-right:1px solid var(--hair-soft);border-bottom:2px solid transparent;white-space:nowrap}
+.tab.on{background:var(--canvas);color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+.tab i{width:8px;height:8px;border-radius:2px;background:var(--teal)}
+#crumb{height:24px;flex:none;display:flex;align-items:center;padding:0 16px;font-size:12px;color:var(--steel)}
+
+#code{flex:1;min-height:0;overflow:hidden;font-family:var(--mono);font-size:13px;line-height:20px;padding-top:2px}
+.row{display:flex;height:20px;white-space:pre}
+.row.act{background:var(--surface)}
+.ln{width:56px;flex:none;text-align:right;padding-right:20px;color:var(--muted);user-select:none}
+.row.act .ln{color:var(--charcoal)}
+.tx{color:var(--charcoal)}
+.tx i{font-style:normal}
+
+/* 구문 강조 (highlight.js 가 붙이는 클래스) */
+.k{color:var(--syn-k);font-weight:500}
+.s{color:var(--syn-s)}
+.n{color:var(--syn-n)}
+.c{color:var(--syn-c)!important;font-style:italic!important}
+.f{color:var(--syn-f)}
+.b{color:var(--syn-b)}
+
+.cur{display:inline-block;width:2px;height:16px;background:var(--primary);vertical-align:-3px;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+
+@media(max-width:640px){#erow{flex-direction:column-reverse}}

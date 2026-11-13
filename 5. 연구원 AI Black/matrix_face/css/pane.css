@@ -1,0 +1,21 @@
+/* ============================================================
+   pane.css — 오른쪽 프리뷰(얼굴 canvas) + 하단 터미널 패널
+   ============================================================ */
+#pane{position:relative;width:42%;min-width:280px;max-width:760px;flex:none;background:var(--pane-bg);border-left:1px solid var(--hair);overflow:hidden;
+  background-image:radial-gradient(var(--pane-dot) 1px,transparent 1px);background-size:24px 24px}
+#face{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.ph{position:absolute;left:16px;top:12px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--pane-ink);z-index:2}
+.badge{position:absolute;right:16px;top:8px;z-index:2;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:500;color:#fff;background:var(--primary)}
+.cap{position:absolute;left:16px;bottom:10px;z-index:2;font-size:12px;color:var(--pane-ink);font-family:var(--mono)}
+
+#panel{height:168px;flex:none;border-top:1px solid var(--hair);background:var(--canvas);display:flex;flex-direction:column}
+.ptabs{display:flex;height:32px;gap:20px;padding:0 16px;flex:none;border-bottom:1px solid var(--hair-soft)}
+.ptabs span{display:flex;align-items:center;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--steel);border-bottom:2px solid transparent}
+.ptabs span.on{color:var(--ink);border-bottom-color:var(--ink)}
+#term{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:6px 16px 8px;font-family:var(--mono);font-size:12px;line-height:18px;color:var(--charcoal);white-space:pre}
+#term .ok{color:var(--ok)}
+#term .dim{color:var(--steel)}
+#term .pr{color:var(--syn-k);font-weight:600}
+#term .wr{color:var(--orange)}
+
+@media(max-width:640px){#pane{width:100%;max-width:none;height:50%;border-left:0}}
