@@ -1,0 +1,29 @@
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   [02_화면/20_자료해석.html] 자료 해석 화면
+   하는 일 : 자료 해석 화면의 자리(종합 해석 문장·연평균/계절 그래프·지점별 표·7개 항목 종합). 그리는 동작은 40_화면/22_자료해석.js
+   주요 이름: v-interp, ipSum, ipYear, ipSeason, ipTbl, ipItems, ipCopy, ipMd
+   이럴 때 고침: 이 화면에 버튼·칸을 더하거나 문구를 바꿀 때
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section class="view" id="v-interp" hidden>
+      <div class="card">
+        <div class="card-h"><h3 id="ipTitle">자료 해석</h3><span class="sub" id="ipSub"></span>
+          <div class="tools"><button class="iconbtn" id="ipCopy" title="해석 문장을 복사(보고서에 붙여넣기)">해석 복사</button><button class="iconbtn" id="ipMd" title="해석·표를 MD 파일로 저장">MD 저장</button></div></div>
+        <div class="notice" id="ipNote">왼쪽에서 고른 <b>지점·기간</b>과 위쪽 <b>항목</b>으로 경향을 계산해 문장으로 풀어 씁니다. 항목·지점·기간을 바꾸면 바로 다시 계산합니다. 기간을 <b>3년 이상</b>으로 잡아야 추세·계절 해석이 믿을 만합니다.</div>
+        <div id="ipSum" class="ipsum"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>연평균 추이 · 계절 패턴</h3><span class="sub">선택 지점 기준</span>
+          <div class="tools ipcolors">막대 색 <label title="강우기(6~9월)">강우기 <input type="color" id="ipC_wet"></label><label title="갈수기(12~3월)">갈수기 <input type="color" id="ipC_dry"></label><label title="그 밖의 달">기타 <input type="color" id="ipC_mid"></label><button class="iconbtn" id="ipCReset">기본색</button></div></div>
+        <div class="ipcharts"><div class="chart" id="ipYear"></div><div class="chart" id="ipSeason"></div></div>
+        <div class="foot" id="ipChartFoot"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>지점별 해석</h3><span class="sub" id="ipTblSub"></span>
+          <div class="tools"><button class="iconbtn" id="ipTblCopy">표 복사</button></div></div>
+        <div class="tablewrap"><table class="dt" id="ipTbl"></table></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>7개 항목 종합</h3><span class="sub">선택 지점·기간 · 항목 이름을 누르면 그 항목 해석으로 바뀝니다</span></div>
+        <div class="tablewrap" id="ipItems"></div>
+      </div>
+    </section>

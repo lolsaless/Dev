@@ -1,0 +1,32 @@
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   [02_화면/12_종단.html] 상·하류 종단 화면
+   하는 일 : 상·하류 종단 화면의 자리(제목·버튼·그래프·표 칸). 그리는 동작은 40_화면/12_종단.js
+   주요 이름: v-prof, pfChart, pfRivers, pfEdit, peCard(종단 편집 — 동작은 40_화면/24_종단편집.js), pfTbl
+   이럴 때 고침: 이 화면에 버튼·칸을 더하거나 문구를 바꿀 때
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section class="view" id="v-prof" hidden>
+      <div class="card">
+        <div class="card-h"><h3 id="pfTitle"></h3><span class="sub" id="pfSub"></span>
+          <div class="tools"><div class="seg sm" id="pfRivers"></div><button class="iconbtn" id="pfEdit" title="지도에서 종단에 넣을 지점과 상류→하류 순서를 정함">✎ 종단 편집</button><button class="iconbtn" data-img="pfChart">그림 저장</button></div></div>
+        <div class="legend" id="pfLegend"></div>
+        <div class="chart" id="pfChart"></div>
+      </div>
+      <div class="card" id="peCard" hidden>
+        <div class="card-h"><h3>상·하류 종단 편집</h3><span class="sub" id="peSub"></span>
+          <div class="tools"><label class="pelab">중권역 <select id="peRiver"></select></label>
+            <button class="iconbtn" id="pePick">지도에서 상류부터 차례로 누르기</button>
+            <button class="iconbtn" id="peReset" title="저장한 순서를 지우고 지점코드 순서로">기본 순서로</button>
+            <button class="iconbtn primary" id="peSave">저장</button><button class="iconbtn" id="peClose">닫기</button></div></div>
+        <div class="notice" id="peMsg"></div>
+        <div class="pegrid">
+          <div id="peMap" class="pemap"></div>
+          <div class="pelist"><h4>종단에 넣은 지점 <span class="hint">(위 = 상류, 아래 = 하류)</span></h4><ol id="peOn"></ol>
+            <h4>뺀 지점</h4><ul id="peOff"></ul></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>구간별 변화</h3><span class="sub">바로 위(상류) 지점과 비교한 기간 평균 변화 · ▲ 30% 이상 증가 구간</span>
+          <div class="tools"><button class="iconbtn" id="pfCopy">표 복사</button></div></div>
+        <div class="tablewrap"><table class="dt" id="pfTbl"></table></div>
+      </div>
+    </section>
