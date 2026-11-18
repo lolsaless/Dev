@@ -354,9 +354,10 @@ def build(db=None, out=None, check_only=False, use_cache=False, no_key=False, mo
             c = Counter(q["type"] for q in data["qc"])
             lab = {"manual": "검토필요", "repeat": "전월 동일", "outlier": "이상값 의심", "loq": "정량한계 미만",
                    "multi": "중복 채취", "coord": "좌표 추정"}
-            if data.get("hrec"):
-                h = data["hrec"]
-                print(f"  한강유역환경청 지점 {len(h['stations'])}개 · 기간 {h['months'][0]} ~ {h['months'][-1]} · 점검 {len(h['qc'])}건 · API 갱신 {h['updated'] or '-'}")
+            if data.get("api"):
+                h = data["api"]
+                print(f"  API 자료 지점 {len(h['stations'])}개 · 기간 {h['months'][0]} ~ {h['months'][-1]} · 점검 {len(h['qc'])}건 · API 갱신 {h['updated'] or '-'}")
+                print("  묶음: " + " · ".join(f"{g['label']} {g['n']}" for g in data["groups"]))
             print(f"  시료번호 {len(data['stations'])}개 · 기간 {data['months'][0] if data['months'] else '-'} ~ "
                   f"{data['months'][-1] if data['months'] else '-'} · 자료 점검: " +
                   (" · ".join(f"{lab.get(k, k)} {v}" for k, v in c.items()) or "없음"))
@@ -372,7 +373,7 @@ def watch(**kw):
     last = 0
     while True:
         try:
-            api = W.ROOT / "수질측정망" / "한강청_수질측정망.csv"
+            api = W.ROOT / "수질측정망" / "수질측정망_자료.csv"
             m = max(src_mtime(), W.DEFAULT_DB.stat().st_mtime if W.DEFAULT_DB.exists() else 0,
                     api.stat().st_mtime if api.exists() else 0)
             if m > last:

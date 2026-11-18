@@ -30,7 +30,7 @@ const RIVERS_ALL = () => { const o = []; ST.forEach(s=>{ if(!o.includes(s.river)
 const RIVERS = () => RIVERS_ALL().filter(r=>ST.filter(s=>s.river===r).length>1);
 const itemOf = c => ITEMS.find(i=>i.code===c) || {code:c,name:c,unit:"",dec:2};
 const multiYear = new Set(M.map(m=>m.slice(0,4))).size>1;
-const mLabel = m => multiYear ? m.slice(2,4)+"."+m.slice(5) : (+m.slice(5))+"월";
+const mLabel = m => multiYear ? `${m.slice(2,4)}년 ${+m.slice(5)}월` : (+m.slice(5))+"월";   // v3.2: 19.09 → 19년 9월
 const mLong = m => m ? m.slice(0,4)+"년 "+(+m.slice(5))+"월" : "";
 const esc = s => String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 

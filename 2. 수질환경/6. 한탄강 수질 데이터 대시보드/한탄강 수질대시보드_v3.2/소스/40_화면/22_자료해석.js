@@ -190,7 +190,7 @@ function renderInterp(){
     const qcN = D.qc.filter(q=>names.includes(q.st) && (!q.item || q.item===item) && (!q.m || ms.includes(q.m))).length;
     const thin = X.filter(x=>!x.enough).map(x=>x.n);
     L.push(["자료 품질", `자동 점검 표시 ${qcN}건(자료 점검 탭에서 확인)${thin.length?` · 측정 개월 수가 부족해 해석에서 뺀 지점: ${thin.slice(0,6).map(esc).join(", ")}${thin.length>6?` 외 ${thin.length-6}곳`:""}`:""}.`
-      + (GRP!=="lab" ? " 한강유역환경청 자료는 같은 달 여러 회차를 평균한 값이며, 측정 주기가 바뀐 해(2016년 전후 등)가 있어 오래된 자료와 비교할 때 주의가 필요합니다." : "")]);
+      + (GRP!=="lab" ? " 수질측정망(API) 자료는 같은 달 여러 회차를 평균한 값이며, 측정 주기가 바뀐 해(2016년 전후 등)가 있어 오래된 자료와 비교할 때 주의가 필요합니다." : "")]);
   }
   L.push(["읽는 법", `이 해석은 통계 결과를 문장으로 옮긴 <b>자동 해석</b>입니다. '가능성'으로 적은 원인은 일반적인 수질 지식에 따른 것이므로, 보고서에 쓸 때는 유량·강우·오염원 현황(방류수, 산단, 축산 등)과 함께 확인하세요.`]);
   $("ipSum").innerHTML = `<dl class="ipdl">${L.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join("")}</dl>`;

@@ -28,3 +28,25 @@ td.ipline{min-width:260px;white-space:normal;color:var(--ink-2);font-size:12px}
 .linkbtn{border:0;background:none;color:var(--accent);font:700 12.5px var(--f-ui);cursor:pointer;padding:0;text-decoration:underline}
 @media (max-width:980px){.ipcharts{grid-template-columns:1fr}.ipdl{grid-template-columns:1fr}.ipdl dt{margin-top:4px}}
 @media print{#v-interp .tools{display:none}}
+/* ── v3.2: 기간 설정 막대 ── */
+.periodbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);font-size:13px}
+.periodbar .pt{font-weight:700;color:var(--accent);margin-right:2px}
+.periodbar select{border:1px solid var(--line);background:var(--panel-2);border-radius:6px;padding:4px 6px;font:13px var(--f-ui);color:var(--ink)}
+.periodbar .prange{display:flex;align-items:center;gap:4px}
+#pQuick{display:flex;flex-wrap:wrap;gap:4px}
+#pQuick button{border:1px solid var(--line);background:var(--panel-2);color:var(--ink-2);border-radius:999px;padding:3px 10px;font:12.5px var(--f-ui);cursor:pointer}
+#pQuick button:hover{border-color:var(--accent);color:var(--accent)}
+#pQuick button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+#pInfo{color:var(--ink-3);font-size:12px;margin-left:auto}
+/* ── v3.2: 비슷한 경향 지점 ── */
+.simtools{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.simtools select{border:1px solid var(--line);background:var(--panel-2);border-radius:6px;padding:3px 6px}
+#simGroups{display:flex;flex-direction:column;gap:6px;padding:4px 16px 10px}
+.simg{display:grid;grid-template-columns:64px 130px 1fr auto;gap:10px;align-items:center;padding:7px 10px;border:1px solid var(--line-2);border-radius:8px;background:var(--panel-2);font-size:12.5px}
+.simk{font-weight:700;color:var(--accent)} .simn{color:var(--ink-3)} .simm{color:var(--ink)}
+.simref{padding:4px 16px 14px}
+.simt td{padding:3px 8px}
+.simt tr.simok td{background:color-mix(in oklab, var(--accent) 10%, var(--panel))}
+.simbar{display:inline-block;height:6px;border-radius:3px;background:var(--accent);margin-right:6px;vertical-align:middle;max-width:80px}
+@media (max-width:980px){.simg{grid-template-columns:1fr}#pInfo{margin-left:0}}
+@media print{.periodbar,#simCard{display:none}}

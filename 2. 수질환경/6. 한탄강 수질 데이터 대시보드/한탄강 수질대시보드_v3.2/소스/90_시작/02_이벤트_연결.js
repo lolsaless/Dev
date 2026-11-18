@@ -13,7 +13,7 @@ function bind(){
   $("q").oninput=e=>{ S.q=e.target.value; renderSide(); };
   $("menuBtn").onclick=()=>{ const s=$("side"); s.classList.toggle("collapsed"); $("menuBtn").setAttribute("aria-expanded", !s.classList.contains("collapsed")); };
   /* 왼쪽 패널: 표시 옵션 */
-  const mo = M.map((m,i)=>`<option value="${i}">${multiYear?m:mLabel(m)}</option>`).join("");
+  const mo = M.map((m,i)=>`<option value="${i}">${multiYear?mLong(m):mLabel(m)}</option>`).join("");
   $("oFrom").innerHTML=mo; $("oTo").innerHTML=mo; syncOpts();
   $("oBand").onchange=e=>{ S.opt.band=e.target.value; syncOpts(); refresh(); };
   $("oK").onchange=e=>{ const v=+e.target.value; if(v>0){ S.opt.k=v; refresh(); } };

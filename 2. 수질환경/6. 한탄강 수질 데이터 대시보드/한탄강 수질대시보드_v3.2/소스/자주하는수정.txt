@@ -35,8 +35,11 @@ V월드 배경지도 종류·주소 | 40_화면/14_지도.js | VW, setTiles
 자동 점검 규칙(이상값·전월 동일) | tools/data_builder.py | build_data 의 '자료 점검(QC)'
 엑셀 DB 시트·열 이름, 설정 기본값 | tools/wq_common.py | ST_COLS, MEAS_COLS, SETTINGS
 서버 저장 규칙(지점·설정) | tools/serve.py | apply_station_edits, apply_settings
-관리 구분(연구원 관리/한강유역환경청) 버튼·묶음별 숨길 화면 | 20_공통/00_자료묶음.js | GRP, GRP_HIDE, switchGroup
-한강청 묶음: 처음 선택 중권역·기간, 하천 묶음 기준 | tools/api_data.py | DEFAULT_RIVER, DEFAULT_YEARS, RIVER_FIELD
-API 수집: 시작 연도·최근 다시 받을 연도 수·대상 기관 | tools/api_update.py | START_YEAR, RECENT_YEARS, ORG
+관리 구분(연구원 관리/한강유역환경청/엑셀 DB) 묶음 전환·숨길 화면 | 20_공통/00_자료묶음.js | GRP, GRP_HIDE, switchGroup
+API 묶음 이름·기관, 처음 선택 중권역·기간 | tools/api_data.py | GROUPS, INST_ORG, DEFAULT_RIVER, DEFAULT_YEARS
+API 수집: 시작 연도·최근 다시 받을 연도 수·대상 기관 | tools/api_update.py | START_YEAR, RECENT_YEARS, ORGS
 자료 해석 문구·판단 기준(유의수준·계절 비율) | 40_화면/22_자료해석.js | ITEM_NOTE, INTERP_CFG
 실행 파일(bat·command)·예약 갱신 | tools/make_launchers.py | LAUNCHERS, schedule_windows, schedule_mac
+기간 설정 막대(빠른 기간 버튼) | 30_틀동작/04_기간설정.js | PERIOD_QUICK, renderPeriod
+그래프 x축 월 표기(예: 19년 9월) | 20_공통/01_기본값_상태.js | mLabel
+비슷한 경향 지점 찾기(기준 ρ·겹치는 달) | 40_화면/23_유사경향.js | SIM_CFG, simMatrix, simClusters

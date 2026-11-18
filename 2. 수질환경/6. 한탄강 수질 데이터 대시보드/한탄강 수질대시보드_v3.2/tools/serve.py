@@ -52,7 +52,7 @@ _BUILT = {"mtime": 0}
 
 
 def _inputs_mtime():
-    api = W.ROOT / "수질측정망" / "한강청_수질측정망.csv"     # v3.2: API 자료가 갱신되면 다시 빌드
+    api = W.ROOT / "수질측정망" / "수질측정망_자료.csv"     # v3.2: API 자료가 갱신되면 다시 빌드
     return max(BUILD.src_mtime(), W.DEFAULT_DB.stat().st_mtime if W.DEFAULT_DB.exists() else 0,
                api.stat().st_mtime if api.exists() else 0)
 

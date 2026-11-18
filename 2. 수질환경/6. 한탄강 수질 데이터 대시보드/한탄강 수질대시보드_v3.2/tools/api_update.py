@@ -1,7 +1,7 @@
 """
-api_update.py — 물환경 수질측정망(공공데이터포털 API) '한강유역환경청' 지점 자료 받기·갱신
+api_update.py — 물환경 수질측정망(공공데이터포털 API) 연구원·한강유역환경청 지점 자료 받기·갱신
 
-대시보드의 '한강유역환경청' 묶음 자료를 만든다. 필요한 7개 항목(TOC·COD·BOD·SS·T-N·T-P·색도)만 남긴다.
+대시보드의 '연구원 관리'(경기도 보건환경연구원)·'한강유역환경청' 묶음 자료를 만든다. 필요한 7개 항목(TOC·COD·BOD·SS·T-N·T-P·색도)만 남긴다.
 추가 패키지 없이(표준 라이브러리만) 동작한다.
 
 사용법 (프로그램 폴더에서, Mac은 python 대신 python3)
@@ -11,27 +11,28 @@ api_update.py — 물환경 수질측정망(공공데이터포털 API) '한강�
     python tools/api_update.py --merge-only    # 받지 않고 연도별 파일만 다시 합치기
     python tools/api_update.py --check-key     # 인증키로 1번 요청해 연결 시험
     python tools/api_update.py --import-local "…/수질측정망/raw_data"
-                                               # 이미 받아 둔 연도별 CSV(원본 전체 열)에서 한강청·7항목만 가져오기(API 안 씀)
+                                               # 이미 받아 둔 연도별 CSV(원본 전체 열)에서 대상 기관·7항목만 가져오기(API 안 씀)
     --auto                                     # 예약 실행용: 끝나고 기다리지 않음, 결과를 갱신기록.txt 에 덧붙임
 
 폴더 (프로그램 폴더/수질측정망/)
     물환경.env                 공공데이터포털 인증키(DATA_GO_KR_API_KEY=키) — 공유본에서 빼야 함
     지점코드_한강.csv          대권역 한강 지점 코드표(원본 코드표에서 필요한 열·행만)
-    지점목록_한강청.csv        수집 대상 지점(자료의 조사기관 = 한강유역환경청)
-    연도별/2000.csv …          연도별 자료(한강청·7항목)
-    한강청_수질측정망.csv      연도별 파일을 합친 것 → tools/api_data.py 가 대시보드 데이터로 바꿈
+    지점목록.csv               수집 대상 지점(자료의 조사기관이 ORGS 에 있는 지점)
+    연도별/2000.csv …          연도별 자료(대상 기관·7항목)
+    수질측정망_자료.csv        연도별 파일을 합친 것 → tools/api_data.py 가 대시보드 데이터로 바꿈
     갱신정보.json              마지막 갱신 시각·연도별 행 수·최신 검사일
     갱신기록.txt               실행할 때마다 한 줄씩 기록
 
 이럴 때 고침
-    시작 연도·다시 받을 최근 연도 수·대상 기관 → 아래 '설정' 상수
+    시작 연도·다시 받을 최근 연도 수·대상 기관(ORGS) → 아래 '설정' 상수
 """
 # ==================================================================
 # ★ 설정 — 여기만 바꾸면 됩니다
 # ==================================================================
 START_YEAR = 2000              # 처음 연도
 RECENT_YEARS = 2               # 자동 갱신 때 항상 다시 받을 최근 연도 수(올해 + 작년: 늦게 올라오는 자료 반영)
-ORG = "한강유역환경청"          # 자료의 조사기관(orgNm)이 이 값인 행만 남긴다
+ORGS = ["경기도 보건환경연구원", "한강유역환경청"]   # 자료의 조사기관(orgNm)이 이 목록에 있는 행만 남긴다
+                                                 # (대시보드: 연구원 관리 = 첫째 기관, 한강유역환경청 = 모두)
 BASIN = "한강"                 # 코드표 대권역
 ENV_FILE = "물환경.env"
 # ==================================================================
@@ -55,8 +56,8 @@ ROOT = TOOLS.parent
 WQ = ROOT / "수질측정망"
 YEAR_DIR = WQ / "연도별"
 CODE_FILE = WQ / "지점코드_한강.csv"
-SITE_FILE = WQ / "지점목록_한강청.csv"
-ALL_FILE = WQ / "한강청_수질측정망.csv"
+SITE_FILE = WQ / "지점목록.csv"
+ALL_FILE = WQ / "수질측정망_자료.csv"
 INFO_FILE = WQ / "갱신정보.json"
 LOG_FILE = WQ / "갱신기록.txt"
 
@@ -133,7 +134,7 @@ def read_key():
 
 # ── 지점 목록 ─────────────────────────────────────────────
 def load_sites():
-    """수집 대상 = 지점목록_한강청.csv(자료 기준) ∪ 코드표에서 조사기관이 ORG 인 지점"""
+    """수집 대상 = 지점목록.csv(자료 기준) ∪ 코드표에서 조사기관이 ORGS 에 있는 지점"""
     sites = {}
     if SITE_FILE.exists():
         for r in read_csv(SITE_FILE):
@@ -141,11 +142,11 @@ def load_sites():
                 sites[r["지점코드"]] = r
     if CODE_FILE.exists():
         for r in read_csv(CODE_FILE):
-            if r.get("대권역") == BASIN and r.get("조사기관") == ORG and r.get("지점코드") not in sites:
+            if r.get("대권역") == BASIN and r.get("조사기관") in ORGS and r.get("지점코드") not in sites:
                 sites[r["지점코드"]] = {"지점코드": r["지점코드"], "지점명": r.get("지점명", ""), "구분": r.get("구분", ""),
                                        "중권역": r.get("중권역", ""), "주소": r.get("주소", "")}
     if not sites:
-        raise SystemExit("[오류] 수집할 지점이 없습니다. 수질측정망/지점목록_한강청.csv 또는 지점코드_한강.csv 를 확인하세요.")
+        raise SystemExit("[오류] 수집할 지점이 없습니다. 수질측정망/지점목록.csv 또는 지점코드_한강.csv 를 확인하세요.")
     return dict(sorted(sites.items()))
 
 
@@ -222,7 +223,8 @@ def _coord(r, k):
 def tidy(rows, sites, codes):
     out = []
     for r in rows:
-        if nfc(r.get("orgNm", "")) != ORG:
+        org = nfc(r.get("orgNm", "")).strip()
+        if org not in ORGS:
             continue
         no = r.get("ptNo", "")
         vals = {ITEM_MAP[k]: _num(r.get(k)) for k in ITEM_MAP}
@@ -234,7 +236,7 @@ def tidy(rows, sites, codes):
         row = {"지점코드": no, "지점명": nfc(r.get("ptNm", "")),
                "구분": r.get("구분") or si.get("구분") or ci.get("구분", ""),
                "중권역": r.get("중권역") or si.get("중권역") or ci.get("중권역", ""),
-               "조사기관": ORG, "주소": nfc(r.get("addr", "")),
+               "조사기관": org, "주소": nfc(r.get("addr", "")),
                "경도": f"{lon:.6f}" if lon else "", "위도": f"{lat:.6f}" if lat else "",
                "연도": str(r.get("wmyr", "")).strip(), "월": str(r.get("wmod", "")).strip().zfill(2),
                "회차": nfc(r.get("wmwk", "")), "검사일": ymd}
@@ -278,7 +280,8 @@ def merge_all(auto=False):
     dates = [r["검사일"] for r in rows if re.match(r"^\d{4}-\d{2}-\d{2}$", r["검사일"]) and r["검사일"][:4] == r["연도"]]
     info = {"updated": datetime.now().strftime("%Y-%m-%d %H:%M"), "rows": len(rows), "sites": len(sites),
             "first": min(dates) if dates else "", "last": max(dates) if dates else "", "perYear": per,
-            "partial": [y for y, p in by.items() if "partial" in p.name], "org": ORG, "items": ITEMS}
+            "partial": [y for y, p in by.items() if "partial" in p.name], "orgs": ORGS, "items": ITEMS,
+            "perOrg": {o: len({r["지점코드"] for r in rows if r["조사기관"] == o}) for o in ORGS}}
     INFO_FILE.write_text(json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
     log(f"[합치기] {len(rows):,}행 · 지점 {len(sites)}개 · 검사일 {info['first']} ~ {info['last']} → {ALL_FILE.name}", auto)
     if info["partial"]:
@@ -297,7 +300,7 @@ def import_local(src, auto=False):
         rows = tidy(read_csv(p), sites, codes)
         if rows:
             write_csv(YEAR_DIR / p.name, rows, COLUMNS)
-        log(f"  [{p.stem}] 원본 → 한강청 {len(rows):,}행", auto)
+        log(f"  [{p.stem}] 원본 → 대상 기관 {len(rows):,}행", auto)
     return merge_all(auto)
 
 
@@ -336,7 +339,7 @@ def fetch(args):
     nos = list(sites)
     batches = [nos[i:i + BATCH_SIZE] for i in range(0, len(nos), BATCH_SIZE)]
     years = years_to_fetch(args)
-    log(f"[갱신 시작] {ORG} 지점 {len(nos)}개 · 받을 연도 {years[0]}~{years[-1]} ({len(years)}개) · 요청 묶음 {len(batches)}개/연도", auto)
+    log(f"[갱신 시작] {'·'.join(ORGS)} 지점 {len(nos)}개 · 받을 연도 {years[0]}~{years[-1]} ({len(years)}개) · 요청 묶음 {len(batches)}개/연도", auto)
     for y in years:
         rows, failed = [], 0
         for i, b in enumerate(batches, 1):
@@ -384,7 +387,7 @@ def check_key():
 
 
 def main():
-    ap = argparse.ArgumentParser(description=f"물환경 수질측정망 API → {ORG} 지점 7개 항목")
+    ap = argparse.ArgumentParser(description=f"물환경 수질측정망 API → {'·'.join(ORGS)} 지점 7개 항목")
     ap.add_argument("--years", type=int, nargs="+", help="받을 연도")
     ap.add_argument("--full", action="store_true", help="시작 연도부터 전부 다시")
     ap.add_argument("--merge-only", action="store_true")

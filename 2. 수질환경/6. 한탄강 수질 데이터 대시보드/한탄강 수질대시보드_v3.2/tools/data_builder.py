@@ -177,16 +177,14 @@ def build_data(db_path):
         # 설정 화면에 보여 줄 설정 시트 전체(이름·값·설명·선택지)
         "settingsRaw": [{"key": k, "value": cfg.get(k, dv), "desc": d, "choices": ch} for k, dv, d, ch in W.SETTINGS],
     }
-    # ── v3.2: 자료 묶음(연구원 관리 / 한강유역환경청) ─────────────
+    # ── v3.2: 자료 묶음 — API(연구원 관리 / 한강유역환경청=연구원+유역청) + DB 엑셀(자체 조사) ─────────
     import api_data  # noqa: E402 (같은 tools 폴더)
-    hrec, hw = api_data.build_hrec(cfg)
-    warns.extend(hw)
-    data["groups"] = [{"key": "lab", "label": "연구원 관리", "n": len(stations),
-                       "desc": f"연구원 조사 시료번호 {len(stations)}개 · DB 엑셀({Path(db_path).name})"}]
-    if hrec:
-        data["hrec"] = hrec
-        data["groups"].append({"key": "hrec", "label": "한강유역환경청", "n": len(hrec["stations"]),
-                               "desc": f"물환경 수질측정망 {len(hrec['stations'])}개 지점 · API 갱신 {hrec['updated'] or '-'}"})
+    api, groups, aw = api_data.build_api(cfg)
+    warns.extend(aw)
+    if api:
+        data["api"] = api
+    data["groups"] = groups + [{"key": "lab", "label": "엑셀 DB", "n": len(stations),
+                                "desc": f"연구원 자체 조사 시료번호 {len(stations)}개 · {Path(db_path).name}"}]
     return data, warns
 
 
