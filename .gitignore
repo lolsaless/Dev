@@ -8,7 +8,6 @@ venv/
 __pycache__/
 *.pyc
 build/
-dist/
 *.spec
 
 # macOS 시스템 파일 (Finder가 폴더마다 자동 생성)
