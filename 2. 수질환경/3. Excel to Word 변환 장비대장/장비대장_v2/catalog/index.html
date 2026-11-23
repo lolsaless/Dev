@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시험장비 카탈로그</title>
+<style>/*@CSS*/</style>
+</head>
+<body>
+<!-- ========== 상단바 ========== -->
+<header class="topnav">
+  <div class="wrap bar">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="9" width="24" height="17" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M11 9V6.5A2.5 2.5 0 0 1 13.5 4h5A2.5 2.5 0 0 1 21 6.5V9" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="16" cy="17.5" r="3.5" fill="currentColor"/></svg>
+      <div><span class="t">시험장비 카탈로그</span><small id="meta"></small></div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabBrowse" aria-selected="true">장비 둘러보기<span class="n" id="nAll"></span></button>
+      <button class="tab" role="tab" id="tabSheet" aria-selected="false">엑셀 원본 보기<span class="n" id="nSheets"></span></button>
+    </nav>
+    <div class="navright">
+      <button class="btn ghost" id="btnFav" title="관심 장비만 보기" aria-pressed="false">
+        <svg width="16" height="16" viewBox="0 0 32 32"><path d="M16 28c7-4.7 14-10 14-17a6.8 6.8 0 0 0-14-3 6.8 6.8 0 0 0-14 3c0 7 7 12.3 14 17z" fill="none" stroke="currentColor" stroke-width="3"/></svg>
+        관심 <span class="badge-n" id="favN">0</span></button>
+      <div class="rel">
+        <button class="btn pill" id="btnSend" aria-haspopup="true" aria-expanded="false">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>보내기</button>
+        <div class="menu" id="sendMenu" role="menu">
+          <button data-act="share"><span>📤</span><span><b>원본 엑셀 공유하기</b><small>메일·메신저 등 컴퓨터의 공유 기능으로 보내기(지원하는 브라우저)</small></span></button>
+          <button data-act="mail"><span>✉️</span><span><b>메일로 보내기</b><small>원본 엑셀을 내려받고 메일 쓰기 창을 엶 — 파일은 직접 첨부</small></span></button>
+          <hr>
+          <button data-act="orig"><span>📗</span><span><b>원본 엑셀 내려받기</b><small id="origInfo">이 카탈로그에 들어 있는 장비관리대장 원본</small></span></button>
+          <button data-act="xlsx"><span>📊</span><span><b>보이는 장비 → 엑셀(.xlsx)</b><small>현재 필터 결과 + 장비구성 시트</small></span></button>
+          <button data-act="docx"><span>📄</span><span><b>보이는 장비 → Word 장비관리대장</b><small>현재 필터 결과를 양식(앞면+뒷면)으로</small></span></button>
+          <button data-act="print"><span>🖨️</span><span><b>목록 인쇄 / PDF</b><small>지금 보이는 표를 인쇄</small></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ========== 장비 둘러보기 ========== -->
+<section id="viewBrowse">
+  <div class="wrap searchzone">
+    <form class="search" id="searchForm" role="search" onsubmit="return false">
+      <div class="seg"><label for="qId">관리번호</label><input id="qId" placeholder="예: 05, 98 (쉼표=여러 개)" autocomplete="off"></div>
+      <div class="seg"><label for="qName">물품명</label><input id="qName" placeholder="예: 저울, 분광" autocomplete="off"></div>
+      <div class="seg wide"><label for="qAny">통합 검색</label><input id="qAny" placeholder="규격·제조사·도입처·용도·성능·구성품" autocomplete="off"></div>
+      <button class="orb" id="orb" type="button" aria-label="검색어 지우기 / 검색">
+        <svg width="16" height="16" viewBox="0 0 32 32"><path d="M13 24a11 11 0 1 0 0-22 11 11 0 0 0 0 22zm8-3 9 9" fill="none" stroke="currentColor" stroke-width="4"/></svg></button>
+    </form>
+  </div>
+  <div class="wrap strip">
+    <div class="chips" id="priceChips" aria-label="금액 구간"></div>
+    <button class="filterbtn" id="btnFilter"><svg width="16" height="16" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 16H3m26 0H15M29 6H11M7 6H3m26 20h-4m-4 0H3"/><circle cx="9" cy="6" r="3"/><circle cx="11" cy="16" r="3"/><circle cx="23" cy="26" r="3"/></svg>상세 검색 <span class="badge-n" id="fN" hidden>0</span></button>
+  </div>
+  <div class="wrap">
+    <div class="reshead">
+      <h2 id="resTitle">장비</h2><span class="sum" id="resSum"></span>
+      <div class="active-filters" id="activeF"></div>
+      <span class="sp"></span>
+      <select class="sel" id="sort" aria-label="정렬">
+        <option value="id">관리번호순</option><option value="name">물품명순</option>
+        <option value="dateD">도입일 최신순</option><option value="dateA">도입일 오래된순</option>
+        <option value="priceD">금액 높은순</option><option value="priceA">금액 낮은순</option>
+      </select>
+      <div class="seg2" role="group" aria-label="보기 방식">
+        <button id="vGrid" aria-pressed="true" title="사진 카드"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>카드</button>
+        <button id="vTable" aria-pressed="false" title="표"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>표</button>
+      </div>
+    </div>
+    <div id="results"></div>
+  </div>
+</section>
+
+<!-- ========== 엑셀 원본 보기 ========== -->
+<section id="viewSheet" hidden>
+  <div class="wrap">
+    <div class="sheetbar">
+      <div class="chips" id="sheetTabs"></div>
+      <span class="sp"></span>
+      <label class="sbox"><svg width="14" height="14" viewBox="0 0 32 32"><path d="M13 24a11 11 0 1 0 0-22 11 11 0 0 0 0 22zm8-3 9 9" fill="none" stroke="currentColor" stroke-width="4"/></svg><input id="sheetQ" placeholder="이 시트에서 찾기"></label>
+      <label class="togglerow" style="padding:0;gap:8px"><span class="switch"><input type="checkbox" id="sheetWrap"><span></span></span>줄바꿈</label>
+      <button class="btn" id="sheetDl">원본 엑셀 내려받기</button>
+    </div>
+    <div class="sheetmeta" id="sheetMeta"></div>
+    <div class="xls" id="sheetTable"></div>
+  </div>
+</section>
+</main>
+<footer class="wrap footer" id="footer"></footer>
+
+<!-- ========== 상세 모달 ========== -->
+<div class="scrim" id="detail" aria-hidden="true"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dtTitle" id="detailBox"></div></div>
+<!-- ========== 상세 검색 모달 ========== -->
+<div class="scrim" id="filters" aria-hidden="true"><div class="dialog narrow" role="dialog" aria-modal="true" aria-label="상세 검색">
+  <div class="dhead"><button class="iconbtn" data-close aria-label="닫기">✕</button><h3>상세 검색</h3><span style="width:40px"></span></div>
+  <div class="dbody" id="filterBody"></div>
+  <div class="dfoot"><button class="btn ghost" id="fClear" style="text-decoration:underline">전체 해제</button><button class="btn primary" id="fApply">장비 0개 보기</button></div>
+</div></div>
+<div class="lightbox" id="lightbox"><img alt=""></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>window.EQ_DATA = /*__DATA__*/null;</script>
+<!--@SCRIPTS-->
+</body>
+</html>

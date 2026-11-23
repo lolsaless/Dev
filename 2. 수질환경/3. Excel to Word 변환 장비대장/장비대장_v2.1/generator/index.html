@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>장비관리대장 생성기</title>
+<style>/*@CSS*/</style>
+</head>
+<body>
+<header class="top"><div class="wrap row">
+  <div class="brand"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="9" width="24" height="17" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M11 9V6.5A2.5 2.5 0 0 1 13.5 4h5A2.5 2.5 0 0 1 21 6.5V9" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="16" cy="17.5" r="3.5" fill="currentColor"/></svg>
+    <div><b>장비관리대장 생성기</b><small>엑셀 + 사진 → Word 장비관리대장 + HTML 관리대장 · 인터넷 없이 동작 · v<span id="ver"></span></small></div></div>
+</div></header>
+
+<main class="wrap">
+  <section class="card">
+    <h2><span class="num">1</span>엑셀 파일</h2>
+    <div class="drop" id="dropXlsx" tabindex="0"><b>장비관리대장 통합 엑셀을 끌어다 놓거나 클릭</b><span id="xlsxName">.xlsx</span></div>
+    <input type="file" id="fileXlsx" accept=".xlsx,.xlsm,.xls" hidden>
+    <div id="sheetPick" hidden>
+      <div class="sub">장비 시트 (여러 개 선택 가능 — 선택한 시트의 장비를 모두 만듭니다)</div>
+      <div class="chips" id="sheetChips"></div>
+      <label class="field" style="max-width:360px"><span>장비구성 시트</span><select id="selComp"></select></label>
+    </div>
+    <div id="xlsxMsg"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">2</span>사진 폴더 <span class="tag">선택</span></h2>
+    <div class="drop" id="dropImg" tabindex="0"><b>사진 폴더를 끌어다 놓거나 클릭해서 선택</b><span id="imgName">파일명 = 관리번호 (예: 04-장비-05.jpg, 04-장비-05.HEIC)</span></div>
+    <input type="file" id="fileImgDir" webkitdirectory multiple hidden>
+    <input type="file" id="fileImgFiles" multiple accept="image/*,.heic,.heif,.tif,.tiff" hidden>
+    <div class="rowline"><button class="btn sm" id="btnImgFiles" type="button">폴더 대신 사진 여러 장 고르기</button>
+      <span class="hint">JPG · PNG · HEIC/HEIF(아이폰) · WEBP · GIF · BMP · TIFF · AVIF</span></div>
+    <div id="imgMsg"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">3</span>만들기 옵션</h2>
+    <div class="grid2">
+      <label class="field"><span>Word 출력 방식</span><select id="optMode">
+        <option value="single">하나의 Word 파일 (선택한 장비 전체)</option><option value="zip">장비별 Word 파일 → ZIP</option></select></label>
+      <label class="field"><span>날짜 표기</span><select id="optDate">
+        <option value="dot">2004.07.01</option><option value="dash">2004-07-01</option><option value="kr">2004. 7. 1.</option><option value="han">2004년 7월 1일</option></select></label>
+      <label class="field"><span>사진 줄이기 기준 (이 용량 이상이면)</span><span class="inline"><input type="number" id="optLimit" min="100" step="100"> KB</span></label>
+      <label class="field"><span>줄일 목표 용량 (이하로)</span><span class="inline"><input type="number" id="optTarget" min="50" step="10"> KB</span></label>
+      <label class="check"><input type="checkbox" id="optCatalog" checked> 관리대장(HTML)도 함께 만들기 — 검색·금액 필터·구성/이력 편집·직인·원본 엑셀</label>
+      <label class="field"><span>관리대장(HTML) 사진 크기(긴 변)</span><select id="optThumb"><option value="640">640px (가볍게)</option><option value="900" selected>900px (권장)</option><option value="1200">1200px (선명하게)</option></select></label>
+    </div>
+    <p class="hint">주요 성능 및 특징·규격 등 글이 긴 칸은 글자 크기를 자동으로 줄이고 줄 간격을 고정해 <b>앞면(대장)과 뒷면(이력표)이 각각 한 쪽</b>에 들어가게 합니다. 표의 ‘성능 글자’ 열에서 미리 확인할 수 있습니다.</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">4</span>대상 확인 <span class="tag" id="cnt">0건</span></h2>
+    <div class="rowline">
+      <label class="check"><input type="checkbox" id="chkAll" checked> 전체 선택</label>
+      <input type="search" id="q" class="search" placeholder="관리번호·물품명 찾기">
+      <label class="check"><input type="checkbox" id="chkNoPhoto"> 사진 없는 장비만</label>
+    </div>
+    <div class="tablewrap"><table id="tbl"><thead><tr><th></th><th>구분</th><th>순번</th><th>관리번호</th><th>물품명</th><th>사진</th><th>구성</th><th>이력</th><th title="주요 성능 및 특징 예상 글자 크기">성능 글자</th><th>결과</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">5</span>실행</h2>
+    <div class="rowline">
+      <button class="btn primary" id="btnRun" disabled>Word 장비관리대장 만들기</button>
+      <button class="btn" id="btnCat" disabled>관리대장(HTML)만 만들기</button>
+      <button class="btn" id="btnPhotos" disabled>변환된 사진 ZIP 저장</button>
+      <span id="runState" class="hint"></span>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div id="log" aria-live="polite">대기 중…</div>
+  </section>
+</main>
+<script>const TEMPLATE_B64 = "__TEMPLATE_B64__";
+const CATALOG_TPL = __CATALOG_TPL__;</script>
+<!--@SCRIPTS-->
+</body>
+</html>

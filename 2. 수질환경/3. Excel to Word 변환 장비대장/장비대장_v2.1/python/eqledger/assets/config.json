@@ -1,0 +1,365 @@
+{
+  "_설명": "생성기(HTML)·카탈로그·Python 판이 함께 쓰는 설정. 엑셀 열 이름이 바뀌면 columns 의 별칭 목록만 고치면 된다.",
+  "version": "2.1.0",
+  "sheets": {
+    "_설명": "관리번호·물품명 열이 있는 시트를 장비 시트로 본다(exclude 이름 제외). order 순서로 Word·카탈로그에 배치. transfer 시트에 있는 장비는 다른 시트에서 빠진다(중복 제거).",
+    "exclude": "폐기|구성|매핑|component|이력|직인",
+    "order": [
+      "장비대장",
+      "기타장비",
+      "이관장비"
+    ],
+    "defaultOn": [
+      "장비대장",
+      "기타장비",
+      "이관장비"
+    ],
+    "transfer": "이관장비",
+    "componentPattern": "구성|component",
+    "historySheet": "수리이력",
+    "peopleSheet": "직인관리"
+  },
+  "columns": {
+    "seq": {
+      "aliases": [
+        "순번"
+      ]
+    },
+    "id": {
+      "aliases": [
+        "관리번호"
+      ],
+      "required": true
+    },
+    "serial": {
+      "aliases": [
+        "구입일련번호"
+      ]
+    },
+    "item": {
+      "aliases": [
+        "물품번호"
+      ]
+    },
+    "name": {
+      "aliases": [
+        "물품명",
+        "물품명(내부)",
+        "품명"
+      ],
+      "required": true
+    },
+    "nameExt": {
+      "aliases": [
+        "물품명(외부보고용)"
+      ]
+    },
+    "spec": {
+      "aliases": [
+        "규격",
+        "형식및규격"
+      ]
+    },
+    "date": {
+      "aliases": [
+        "취득일(확정)",
+        "구입일(내부)",
+        "취득일(의회)"
+      ]
+    },
+    "year": {
+      "aliases": [
+        "구입년도"
+      ]
+    },
+    "qty": {
+      "aliases": [
+        "수량"
+      ]
+    },
+    "price": {
+      "aliases": [
+        "내부금액(원)",
+        "금액(원)"
+      ]
+    },
+    "status": {
+      "aliases": [
+        "상태"
+      ],
+      "pick": "first"
+    },
+    "usage": {
+      "aliases": [
+        "용도"
+      ]
+    },
+    "remark": {
+      "aliases": [
+        "바고",
+        "비고"
+      ]
+    },
+    "place": {
+      "aliases": [
+        "장소"
+      ]
+    },
+    "maker": {
+      "aliases": [
+        "제조사",
+        "제작회사"
+      ]
+    },
+    "country": {
+      "aliases": [
+        "제조국"
+      ]
+    },
+    "vendor": {
+      "aliases": [
+        "도입회사명",
+        "회사명"
+      ]
+    },
+    "addr": {
+      "aliases": [
+        "도입처주소",
+        "주소"
+      ]
+    },
+    "tel": {
+      "aliases": [
+        "연락처",
+        "전화번호"
+      ],
+      "pick": "first"
+    },
+    "cond": {
+      "aliases": [
+        "상태"
+      ],
+      "pick": "last"
+    },
+    "note": {
+      "aliases": [
+        "내용",
+        "주요성능및특징"
+      ]
+    },
+    "telNote": {
+      "aliases": [
+        "연락처비고"
+      ]
+    },
+    "outDate": {
+      "aliases": [
+        "이관일"
+      ]
+    },
+    "inDate": {
+      "aliases": [
+        "수관일"
+      ]
+    }
+  },
+  "componentColumns": {
+    "id": [
+      "관리번호"
+    ],
+    "seq": [
+      "연번",
+      "순번",
+      "no"
+    ],
+    "name": [
+      "내용",
+      "장비명",
+      "구성품",
+      "구성품명",
+      "품명",
+      "명칭",
+      "물품명",
+      "name"
+    ],
+    "qty": [
+      "수량",
+      "qty",
+      "quantity"
+    ],
+    "unit": [
+      "단위",
+      "unit"
+    ]
+  },
+  "form": {
+    "_단위": "twip (1pt = 20twip). ledger.docx 앞면 표(표 2번)에서 잰 칸 크기",
+    "nameLine": {
+      "w": 6773,
+      "h": 620,
+      "max": 12,
+      "min": 8.5
+    },
+    "infoCellH": 1039,
+    "info": {
+      "spec": {
+        "w": 1563,
+        "max": 10,
+        "min": 6
+      },
+      "maker": {
+        "w": 1563,
+        "max": 10,
+        "min": 6
+      },
+      "date": {
+        "w": 1563,
+        "max": 10,
+        "min": 6
+      },
+      "vendor": {
+        "w": 1563,
+        "max": 10,
+        "min": 6
+      },
+      "addr": {
+        "w": 1563,
+        "max": 10,
+        "min": 6
+      },
+      "tel": {
+        "w": 1791,
+        "max": 10,
+        "min": 6
+      },
+      "usage": {
+        "w": 2814,
+        "max": 10,
+        "min": 6
+      }
+    },
+    "note": {
+      "w": 6773,
+      "h": 2840,
+      "labelH": 300,
+      "max": 10,
+      "min": 5.5
+    },
+    "comp": {
+      "nameW": 3685,
+      "rowH": 523,
+      "baseRows": 5,
+      "maxRows": 10,
+      "max": 10,
+      "min": 6
+    },
+    "photo": {
+      "w": 7733,
+      "pad": 140,
+      "trim": 330
+    },
+    "lineFactor": 1.2,
+    "cellPadW": 140,
+    "cellPadH": 50,
+    "hist": {
+      "_설명": "뒷면 '수리 또는 부품 교체 이력' 표 — 왼쪽 11칸 + 오른쪽 11칸",
+      "rowsPerSide": 11,
+      "firstRow": 3,
+      "rowH": 737,
+      "dateW": 1519,
+      "contentW": 3050,
+      "stampW": 1327,
+      "stampBoxW": 1180,
+      "stampBoxH": 600,
+      "max": 9,
+      "min": 6
+    }
+  },
+  "image": {
+    "limitKB": 1024,
+    "targetKB": 300,
+    "maxEdge": 2400
+  },
+  "catalog": {
+    "thumbEdge": 900,
+    "thumbQuality": 0.78
+  },
+  "priceBuckets": [
+    {
+      "label": "100만원 미만",
+      "min": 0,
+      "max": 1000000
+    },
+    {
+      "label": "100만~500만원",
+      "min": 1000000,
+      "max": 5000000
+    },
+    {
+      "label": "500만~1,000만원",
+      "min": 5000000,
+      "max": 10000000
+    },
+    {
+      "label": "1,000만~5,000만원",
+      "min": 10000000,
+      "max": 50000000
+    },
+    {
+      "label": "5,000만~1억원",
+      "min": 50000000,
+      "max": 100000000
+    },
+    {
+      "label": "1억원 이상",
+      "min": 100000000,
+      "max": null
+    }
+  ],
+  "title": "수질환경팀 시험장비 관리대장",
+  "historyColumns": {
+    "id": [
+      "관리번호"
+    ],
+    "seq": [
+      "연번",
+      "순번"
+    ],
+    "date": [
+      "일자",
+      "날짜"
+    ],
+    "content": [
+      "내용",
+      "수리내용"
+    ],
+    "manager": [
+      "담당자"
+    ],
+    "leader": [
+      "팀장"
+    ]
+  },
+  "peopleColumns": {
+    "role": [
+      "구분",
+      "직위"
+    ],
+    "name": [
+      "성명",
+      "이름"
+    ],
+    "start": [
+      "사용시작일",
+      "시작일"
+    ],
+    "note": [
+      "비고"
+    ],
+    "dataPrefix": "직인데이터"
+  },
+  "roles": [
+    "담당자",
+    "팀장"
+  ]
+}

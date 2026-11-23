@@ -1,0 +1,47 @@
+"""카탈로그 HTML 시험: 검색·금액·상세·엑셀 보기·내보내기 (Playwright/Chromium)
+   python tests/e2e_catalog.py <카탈로그.html> <출력폴더>"""
+import asyncio, os, sys
+from playwright.async_api import async_playwright
+HTML, OUT = sys.argv[1:3]
+async def main():
+    async with async_playwright() as p:
+        b = await p.chromium.launch(); pg = await b.new_page(viewport={'width': 1360, 'height': 900}, accept_downloads=True)
+        errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+        await pg.goto('file://' + os.path.abspath(HTML)); await pg.wait_for_timeout(800)
+        T = lambda: pg.inner_text('#resTitle')
+        print('전체:', await T())
+        await pg.screenshot(path=f'{OUT}/c1_grid.png')
+        await pg.fill('#qId', '98, 05'); await pg.wait_for_timeout(300); print('관리번호 98,05:', await T())
+        await pg.fill('#qId', ''); await pg.fill('#qName', '분광'); await pg.wait_for_timeout(300); print('물품명 분광:', await T())
+        await pg.fill('#qName', ''); await pg.wait_for_timeout(300)
+        chips = await pg.locator('#priceChips .chip').all_inner_texts(); print('칩:', chips)
+        await pg.click('#priceChips [data-b="5"]'); await pg.wait_for_timeout(300); print('1억 이상:', await T(), await pg.inner_text('#resSum'))
+        await pg.click('#priceChips [data-b=""]'); await pg.wait_for_timeout(200)
+        await pg.click('#btnFilter'); await pg.wait_for_timeout(300)
+        await pg.fill('#mLo', '500'); await pg.fill('#mHi', '1000'); await pg.wait_for_timeout(200)
+        print('상세 500~1000만:', await pg.inner_text('#fApply'))
+        await pg.screenshot(path=f'{OUT}/c2_filter.png')
+        await pg.click('#fApply'); await pg.wait_for_timeout(300); print('적용 후:', await T(), await pg.inner_text('#priceChips'))
+        await pg.click('#priceChips [data-b="detail"]'); await pg.wait_for_timeout(200); print('해제:', await T())
+        # 구성 없는 장비 상세
+        await pg.fill('#qId', '04-장비-30'); await pg.wait_for_timeout(300)
+        await pg.click('.card'); await pg.wait_for_timeout(400)
+        await pg.screenshot(path=f'{OUT}/c3_detail_nocomp.png', full_page=False)
+        await pg.evaluate("document.getElementById('detail').scrollTop=900"); await pg.wait_for_timeout(200)
+        await pg.screenshot(path=f'{OUT}/c3b_detail_nocomp.png')
+        async with pg.expect_download() as d: await pg.click('#dWord')
+        dd = await d.value; await dd.save_as(f'{OUT}/cat_one.docx'); print('상세 Word:', dd.suggested_filename)
+        await pg.click('#dSheet'); await pg.wait_for_timeout(400)
+        await pg.screenshot(path=f'{OUT}/c4_sheet.png'); print('시트:', await pg.inner_text('#sheetMeta'))
+        await pg.click('#catTabs [data-cat="장비대장"]'); await pg.fill('#qId', ''); await pg.wait_for_timeout(300)
+        await pg.click('#btnSend'); await pg.wait_for_timeout(200); await pg.screenshot(path=f'{OUT}/c5_send.png')
+        async with pg.expect_download() as d: await pg.click('[data-act="xlsx"]')
+        dd = await d.value; await dd.save_as(f'{OUT}/cat_export.xlsx'); print('xlsx:', dd.suggested_filename)
+        await pg.click('#btnSend'); 
+        async with pg.expect_download() as d: await pg.click('[data-act="orig"]')
+        dd = await d.value; await dd.save_as(f'{OUT}/cat_orig.xlsx'); print('원본:', dd.suggested_filename)
+        await pg.click('#vTable'); await pg.wait_for_timeout(300); await pg.screenshot(path=f'{OUT}/c6_table.png')
+        await pg.set_viewport_size({'width': 390, 'height': 844}); await pg.click('#vGrid'); await pg.wait_for_timeout(300)
+        await pg.screenshot(path=f'{OUT}/c7_mobile.png')
+        print('PAGE ERRORS:', errs); await b.close()
+asyncio.run(main())
