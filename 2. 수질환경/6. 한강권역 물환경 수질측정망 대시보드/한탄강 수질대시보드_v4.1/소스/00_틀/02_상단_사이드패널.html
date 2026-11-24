@@ -1,0 +1,82 @@
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   [00_틀/02_상단_사이드패널.html] 화면 틀(상단·왼쪽 패널)
+   하는 일 : 상단(제목·항목 버튼·화면 탭 자리·인쇄), 왼쪽 패널(하천·시료번호 목록, 표시 옵션, 색상), 요약 카드 자리, 화면들이 들어갈 <main> 시작
+   주요 이름: hdr, itemSeg, tabs, printBtn, side, stlist, oBand~oSpikeZ, colorEditor(색상 설정 — 내용은 20_공통/07_농도색.js 의 GRAPH_COLOR_GROUPS), kpis
+   이럴 때 고침: 왼쪽 패널에 옵션·버튼을 새로 넣을 때(기능은 90_시작/02_이벤트_연결.js에서 연결). 탭은 여기서 만들지 않음
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="app" id="app">
+  <header class="top" id="hdr">
+    <div class="brand">
+      <h1 id="ttl">한강권역 물환경 수질측정망 대시보드<span class="ver" id="ver"></span></h1>
+      <small id="meta"></small>
+    </div>
+    <div class="hbtns">
+      <button class="iconbtn" id="printBtn" title="선택한 지점·기간으로 7개 항목 보고서를 인쇄하거나 PDF로 저장">인쇄·PDF</button>
+      <button class="iconbtn menu-toggle" id="menuBtn" aria-expanded="false">지점·옵션 ▾</button>
+    </div>
+    <div class="navline">
+      <div id="grpBox"><button class="iconbtn group-tab" id="grpToggle" popovertarget="grpMenu"><span id="grpCurrent"></span> ▾</button></div>
+      <div id="grpMenu" popover class="toolbar-popover stack">
+        <h2>관리 구분</h2><p id="grpDesc" class="hint"></p>
+        <div id="grpSeg" role="group" aria-label="관리 구분"></div>
+      </div>
+    <nav class="tabs" role="tablist" aria-label="화면" id="tabs"></nav>
+    </div>
+  </header>
+
+  <aside class="side collapsed" id="side">
+    <section class="collapsible stack">
+      <div class="row" style="justify-content:space-between"><h2>하천 · 시료번호</h2><span class="hint" id="selCount"></span></div>
+      <div class="row">
+        <button class="chip" id="selAll">전체 선택</button>
+        <button class="chip" id="selNone">선택 해제</button>
+        <button class="chip" id="hlNone">강조 해제</button>
+        <button class="chip" id="reColor" title="지금 선택한 시료번호의 색을 무작위로 다시 배정">🎲 색 다시 배정</button>
+      </div>
+      <input class="search" id="q" type="search" placeholder="하천·시료번호 검색" aria-label="시료번호 검색">
+      <p class="hint"><b>하천명</b>을 누르면 그 하천만 보기(시료번호마다 다른 색) · ☆ 강조 · ● 색 직접 지정(오른쪽 클릭: 자동색) · ⚡ 특이 경향</p>
+      <div class="stlist" id="stlist"></div>
+    </section>
+  </aside>
+
+  <main>
+    <div class="analysis-toolbar">
+      <div class="seg items" id="itemSeg" role="group" aria-label="분석항목"></div>
+      <div class="toolbar-options">
+        <button type="button" class="iconbtn toolbar-icon" popovertarget="viewOptions" aria-label="표시 옵션" title="표시 옵션">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h5m4 0h7M4 17h10m4 0h2"/><circle cx="11" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></svg>
+        </button>
+        <button type="button" class="iconbtn toolbar-icon" popovertarget="colorOptions" aria-label="색상 설정" title="색상 설정">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c-5 0-9 4-9 9s4 9 9 9c2 0 3-1 3-2.5 0-1-1-1.6-1-2.5 0-1.2 1-2 2-2h2c2 0 3-1.5 3-4 0-4-4-7-9-7Z"/><path d="M7 11h.01M10 7h.01M15 7h.01M18 10h.01" stroke-width="2.6"/></svg>
+        </button>
+      </div>
+      <section popover id="viewOptions" class="toolbar-popover opt" aria-label="표시 옵션">
+        <h2>표시 옵션</h2>
+      <label>▲▼ 판정
+        <select id="oBand"><option value="sd">평균 ± k·표준편차 밖</option><option value="pct">평균 ± p% 밖</option><option value="all">평균과 다르면 모두</option><option value="off">표시 안 함</option></select></label>
+      <label class="sub" id="oKwrap">k = <input type="number" id="oK" min="0.25" max="4" step="0.25"> <span>(1 = 약 68% 범위)</span></label>
+      <label class="sub" id="oPwrap" hidden>p = <input type="number" id="oP" min="5" max="300" step="5"> %</label>
+      <label>값 라벨 <select id="oLabels"><option value="auto">자동(▲▼·최근값)</option><option value="all">모든 점</option><option value="off">끄기</option></select></label>
+      <label><input type="checkbox" id="oMean"> 평균선과 정상 범위 띠</label>
+      <label><input type="checkbox" id="oLimits"> 기준선(생활환경기준·목표)</label>
+      <label>y축 <select id="oScale"><option value="linear">선형</option><option value="clip">이상치 잘라 보기</option><option value="log">로그</option></select></label>
+      <label><input type="checkbox" id="oGaps"> 측정 안 한 달도 선으로 잇기</label>
+      <label><input type="checkbox" id="oSpike"> ⚡ 특이 경향(급변) 선 강조</label>
+      <label class="sub" id="oSpikeWrap">기준 z ≥ <input type="number" id="oSpikeZ" min="3" max="30" step="1"> <span>(지점 중앙값 대비, 클수록 엄격)</span></label>
+      <label>기간 <select id="oFrom"></select> ~ <select id="oTo"></select></label>
+      </section>
+      <section popover id="colorOptions" class="toolbar-popover stack" aria-label="색상 설정">
+        <h2>색상 설정</h2>
+        <p class="hint">색 칸을 누르면 색을 고를 수 있습니다. 바꾸면 모든 그래프에 바로 반영되고 이 브라우저에 저장됩니다.</p>
+        <div id="colorEditor" class="color-editor"></div>
+      <div class="row"><button class="chip" id="cReset">색상 초기화</button><button class="chip" id="resetAll">처음 화면으로</button></div>
+      <p class="hint">선택·색상·옵션은 이 브라우저에 저장됩니다. '처음 화면으로'는 저장된 설정을 지우고 설정 파일(수질측정망_설정.xlsx) 값으로 돌아갑니다.</p>
+      </section>
+    </div>
+    <div class="periodbar" id="perBar" role="group" aria-label="기간 설정">
+      <span class="pt">기간 설정</span>
+      <span class="prange"><select id="pFromY" aria-label="시작 연도"></select><select id="pFromM" aria-label="시작 월"></select> ~ <select id="pToY" aria-label="끝 연도"></select><select id="pToM" aria-label="끝 월"></select></span>
+      <div id="pQuick"></div>
+      <span id="pInfo"></span>
+    </div>
+    <div class="kpis" id="kpis"></div>

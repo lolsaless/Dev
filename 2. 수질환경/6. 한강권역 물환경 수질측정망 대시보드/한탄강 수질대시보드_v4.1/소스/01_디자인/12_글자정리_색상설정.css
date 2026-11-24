@@ -1,0 +1,57 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   [01_디자인/12_글자정리_색상설정.css] 글자 넘침·줄바꿈 정리, 색상 설정 창, 추세 검정 고르기 막대, 종단 표
+   하는 일 : 화면 전체에서 글자가 칸 밖으로 나가거나, 너무 작거나, 엉뚱하게 줄바꿈되는 곳을 한곳에서 바로잡는다
+             (CSS는 뒤에 있는 규칙이 이기므로 빌드목록에서 디자인 맨 뒤에 둔다)
+   주요 이름: .color-editor, .cgrp, .citem, .trend-pick, .tp-up/.tp-dn, .pf-up, .pf-join, .card-h
+   이럴 때 고침: 글자 크기 하한(11px)·줄바꿈 규칙, 색상 설정 창 모양
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── 카드 머리(제목·설명·버튼): 좁은 화면에서 설명이 버튼을 밀어내지 않고 아래 줄로 내려가게 ── */
+.card-h{flex-wrap:wrap;row-gap:6px}
+.card-h h3{white-space:nowrap}
+.card-h .sub{min-width:0;flex:1 1 auto;overflow-wrap:anywhere}
+.card-h .tools{flex-wrap:wrap;justify-content:flex-end;row-gap:6px}
+.card-h .tools .seg{flex-wrap:wrap}
+
+/* ── 글자 크기 하한: 화면 글자는 11px 아래로 내려가지 않게(인쇄는 09_인쇄.css가 따로 정함) ── */
+.st .note,.dt td .g,.seasonal-matrix td small{font-size:11px}
+.leaflet-control-attribution{font-size:11px}
+
+/* ── 표: 긴 문장 열은 넉넉히, 짧은 판정 칩은 한 줄로 ── */
+td.ipline{min-width:320px;max-width:520px}
+.dt .pill,.dt .tw{white-space:nowrap}
+
+/* ── 색상 설정 창 ── */
+#colorOptions{width:min(440px,calc(100vw - 24px))}
+.color-editor{display:flex;flex-direction:column;gap:10px;margin:6px 0 10px}
+.cgrp{border:1px solid var(--line);border-radius:8px;padding:8px 10px 10px;margin:0}
+.cgrp legend{font-size:12.5px;font-weight:700;color:var(--ink-2);padding:0 4px}
+.citems{display:grid;grid-template-columns:1fr;gap:6px}
+.cgrid .citems{grid-template-columns:repeat(4,minmax(0,1fr))}
+.cgrp:last-child .citems{grid-template-columns:repeat(5,minmax(0,1fr))}
+.citem{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);cursor:pointer;min-width:0}
+.citem span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cgrid .citem{gap:5px;font-size:12px;color:var(--ink-2)}
+.citem input[type=color]{flex:none;width:34px;height:24px;border:1px solid var(--line);border-radius:5px;padding:0;background:none;cursor:pointer}
+.citem.set input[type=color]{outline:2px solid var(--focus);outline-offset:1px}
+.cundo{flex:none;border:0;background:transparent;color:var(--ink-3);cursor:pointer;padding:0 2px;font-size:13px}
+.cundo:hover{color:var(--ink)}
+.cpreset{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);margin-bottom:6px}
+.cpreset select{border:1px solid var(--line);background:var(--panel-2);border-radius:6px;padding:2px 6px;font-size:12px}
+
+/* ── 경향 분석 · 추세 검정: 그래프 위 시료번호·항목 고르기 막대 ── */
+.trend-pick{gap:8px;padding:10px 16px 2px}
+.trend-pick .tp-l{font-weight:700;color:var(--ink-2)}
+.trend-pick select{min-width:160px;max-width:260px;font-size:13px;padding:4px 6px}
+.trend-pick .iconbtn{padding:3px 9px}
+.trend-pick .iconbtn:disabled{opacity:.4;cursor:default}
+.trend-pick .hint{margin-left:auto;font-size:12px;color:var(--ink-3)}
+#tpItems button.tp-up{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--above) 80%,transparent)}
+#tpItems button.tp-dn{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--below) 80%,transparent)}
+#tpItems button.tp-up2{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--above) 35%,transparent)}
+#tpItems button.tp-dn2{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--below) 35%,transparent)}
+
+/* ── 상·하류 종단: 구간별 변화 표 ── */
+.dt td.pf-up{color:var(--ink-2);max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.dt td.pf-flow{color:var(--ink-3);max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.pf-join{display:inline-block;font-size:11px;padding:0 5px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
